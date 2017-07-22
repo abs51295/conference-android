@@ -6,6 +6,7 @@ import com.systers.conference.model.Page;
 import com.systers.conference.model.Question;
 import com.systers.conference.model.Session;
 import com.systers.conference.model.SessionList;
+import com.systers.conference.model.Speaker;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,9 @@ public interface ETouchesAPI {
 
     @GET("ereg/listQuestions.json")
     Call<List<Question>> getQuestions(@Query("accesstoken") String accessToken, @Query("eventid") int eventId, @Query("pageid") Integer pageId);
+
+    @GET("ereg/getSpeaker.json")
+    Call<Speaker> getSpeaker(@Query("accesstoken") String accessToken, @Query("eventid") int eventId, @Query("speakerid") String speakerId);
 
     @FormUrlEncoded
     @POST("ereg/createAttendee.json")

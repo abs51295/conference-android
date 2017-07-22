@@ -151,7 +151,7 @@ public class AccountUtils {
         SharedPreferences preferences = getSharedPreferences(context);
         return preferences.contains(PREFIX_PREF_ROLE) ? preferences.getString(PREFIX_PREF_ROLE, null) : null;
     }
-  
+
     public static void setAccessToken(final Context context, final String accessToken) {
         SharedPreferences preferences = getSharedPreferences(context);
         preferences.edit().putString(PREFIX_PREF_ACCESS_TOKEN, accessToken).apply();
@@ -163,6 +163,7 @@ public class AccountUtils {
         SharedPreferences preferences = getSharedPreferences(context);
         return preferences.contains(PREFIX_PREF_ACCESS_TOKEN) ? preferences.getString(PREFIX_PREF_ACCESS_TOKEN, null) : "";
     }
+
     public static void setRegisterVisited(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
         preferences.edit().putBoolean(PREFIX_PREF_REGISTER, true).apply();

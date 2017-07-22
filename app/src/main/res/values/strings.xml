@@ -76,6 +76,10 @@
     <string name="image_title">Conference</string>
     <string name="image_description">Profile Picture</string>
 
+    <!--Strings related to speakers -->
+    <string name="speaker_download_failed">Unable to fetch Speaker. Please try again!</string>
+    <string name="speaker_introduction_section_heading">Introduction</string>
+
     <!-- Strings related to navigation drawer -->
     <string name="nav_title">Android Studio</string>
     <string name="email">android.studio@android.com</string>
@@ -90,8 +94,10 @@
     <!--Strings related to intents -->
     <string name="edit_profile" translatable="false">edit_profile</string>
     <string name="registration" translatable="false">form_data</string>
+    <string name="speaker_data" translatable="false">speaker_data</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_pre_registration">PreRegistration</string>
+    <string name="title_activity_speaker_details">SpeakerDetails</string>
 </resources>

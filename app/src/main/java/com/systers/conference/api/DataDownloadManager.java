@@ -8,6 +8,7 @@ import com.systers.conference.model.AccessToken;
 import com.systers.conference.model.AttendeeId;
 import com.systers.conference.model.Question;
 import com.systers.conference.model.SessionList;
+import com.systers.conference.model.Speaker;
 import com.systers.conference.util.APIUtils;
 import com.systers.conference.util.AccountUtils;
 import com.systers.conference.util.LogUtils;
@@ -90,6 +91,20 @@ public final class DataDownloadManager {
             @Override
             public void onFailure(Call<List<SessionList>> call, Throwable t) {
                 LogUtils.LOGE(LOG_TAG, t.toString());
+            }
+        });
+    }
+
+    public void getSpeaker(final ObjectResponseCallback<Speaker> speakerObjectResponseCallback, String speakerId) {
+        client.geteTouchesAPI().getSpeaker(AccountUtils.getAccessToken(ConferenceApplication.getAppContext()), APIUtils.EVENT_ID, speakerId).enqueue(new Callback<Speaker>() {
+            @Override
+            public void onResponse(Call<Speaker> call, Response<Speaker> response) {
+                speakerObjectResponseCallback.OnSuccess(response.body());
+            }
+
+            @Override
+            public void onFailure(Call<Speaker> call, Throwable t) {
+                speakerObjectResponseCallback.OnFailure(t);
             }
         });
     }
