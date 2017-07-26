@@ -1,6 +1,5 @@
 package com.systers.conference.model;
 
-
 import com.google.gson.annotations.SerializedName;
 
 public class Question {

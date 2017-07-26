@@ -1,6 +1,5 @@
 package com.systers.conference.model;
 
-
 import com.google.gson.annotations.SerializedName;
 
 public class Page {
@@ -9,7 +8,6 @@ public class Page {
 
     @SerializedName("page")
     private String pageName;
-
 
     public String getPageId() {
         return pageId;

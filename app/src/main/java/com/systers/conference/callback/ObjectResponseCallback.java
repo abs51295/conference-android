@@ -1,6 +1,5 @@
 package com.systers.conference.callback;
 
-
 public interface ObjectResponseCallback<T> {
     void OnSuccess(T response);
 
