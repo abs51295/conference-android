@@ -1,68 +1,101 @@
 package com.systers.conference.model;
 
-import com.google.gson.annotations.SerializedName;
+import io.realm.RealmList;
+import io.realm.RealmObject;
+import io.realm.annotations.Index;
+import io.realm.annotations.PrimaryKey;
 
-import java.util.List;
-
-public class Session {
-    @SerializedName("sessiondate")
-    private String sessionDate;
-
-    @SerializedName("starttime")
-    private String startTime;
-
-    @SerializedName("endtime")
-    private String endTime;
-
-    @SerializedName("reportname")
-    private String sessionName;
-
-    @SerializedName("descriptions")
-    private Description description;
-
-    @SerializedName("session_tracks")
-    private List<String> tracks;
-
-    @SerializedName("sessiontype")
-    private String sessionType;
-
-    @SerializedName("location")
+public class Session extends RealmObject {
+    @PrimaryKey
+    private String id;
+    @Index
+    private String name;
+    private String sessiondate;
+    private String starttime;
+    private String endtime;
+    private String sessiontype;
     private String location;
+    private String description;
+    private RealmList<Track> tracks;
+    private RealmList<Speaker> speakers;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public String getSessionDate() {
-        return sessionDate;
+        return sessiondate;
+    }
+
+    public void setSessionDate(String sessiondate) {
+        this.sessiondate = sessiondate;
     }
 
     public String getStartTime() {
-        return startTime;
+        return starttime;
+    }
+
+    public void setStartTime(String starttime) {
+        this.starttime = starttime;
     }
 
     public String getEndTime() {
-        return endTime;
+        return endtime;
     }
 
-    public String getSessionName() {
-        return sessionName;
-    }
-
-    public Description getDescription() {
-        return description;
-    }
-
-    public List<String> getTracks() {
-        return tracks;
+    public void setEndTime(String endtime) {
+        this.endtime = endtime;
     }
 
     public String getSessionType() {
-        return sessionType;
+        return sessiontype;
+    }
+
+    public void setSessionType(String sessiontype) {
+        this.sessiontype = sessiontype;
     }
 
     public String getLocation() {
         return location;
     }
-}
 
-class Description {
-    @SerializedName("eng")
-    private String englishDesc;
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public RealmList<Track> getTracks() {
+        return tracks;
+    }
+
+    public void setTracks(RealmList<Track> tracks) {
+        this.tracks = tracks;
+    }
+
+    public RealmList<Speaker> getSpeakers() {
+        return speakers;
+    }
+
+    public void setSpeakers(RealmList<Speaker> speakers) {
+        this.speakers = speakers;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }
