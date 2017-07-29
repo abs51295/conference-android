@@ -1,33 +1,21 @@
 {
   "project_info": {
-    "project_number": "173467551411",
-    "firebase_url": "https://fir-confa.firebaseio.com",
-    "project_id": "firebase-confa",
-    "storage_bucket": "firebase-confa.appspot.com"
+    "project_number": "82989959842",
+    "firebase_url": "https://conf-5c647.firebaseio.com",
+    "project_id": "conf-5c647",
+    "storage_bucket": "conf-5c647.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:173467551411:android:d9eb9eba14a5936c",
+        "mobilesdk_app_id": "1:82989959842:android:d9eb9eba14a5936c",
         "android_client_info": {
           "package_name": "com.systers.conference"
         }
       },
       "oauth_client": [
         {
-          "client_id": "173467551411-0ot63q3n1q0q75gb9nvh2k19a4vt1fpa.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.systers.conference",
-            "certificate_hash": "eedf2ef666e47e1ec898680379ff3a6852c1b951"
-          }
-        },
-        {
-          "client_id": "173467551411-q85mo3o0efo1brta3g7a0dsi4bdi16aj.apps.googleusercontent.com",
-          "client_type": 3
-        },
-        {
-          "client_id": "173467551411-ph5gce840ud9fg4sl7g01n2l7216la19.apps.googleusercontent.com",
+          "client_id": "82989959842-bqeqtdbuglu8u2dv8o9ls2f9ql1htjfa.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.systers.conference",
@@ -35,13 +23,13 @@
           }
         },
         {
-          "client_id": "173467551411-s318p4i7blqf4hho98ub81roct1bos79.apps.googleusercontent.com",
+          "client_id": "82989959842-j37qepl7htr9i7178lb1mqdgnba32aph.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBXb6XI-EdScJ51c4QuDoPsRpwTos21Fgc"
+          "current_key": "AIzaSyBYM-tyTTvDwlmZM_OLKVmo22KzzJawXPM"
         }
       ],
       "services": {
@@ -52,7 +40,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "173467551411-q85mo3o0efo1brta3g7a0dsi4bdi16aj.apps.googleusercontent.com",
+              "client_id": "82989959842-j37qepl7htr9i7178lb1mqdgnba32aph.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
