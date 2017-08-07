@@ -1,6 +1,7 @@
 package com.systers.conference.db;
 
 
+import com.systers.conference.model.Event;
 import com.systers.conference.model.Session;
 import com.systers.conference.model.Speaker;
 import com.systers.conference.model.Track;
@@ -12,16 +13,16 @@ import java.util.List;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.RealmResults;
 
 public class RealmDataRepository {
     private static final String LOG_TAG = LogUtils.makeLogTag(RealmDataRepository.class);
     private static RealmDataRepository realmDataRepository;
-
     private static HashMap<Realm, RealmDataRepository> repoCache = new HashMap<>();
-    private Realm realm;
+    private Realm mRealm;
 
     private RealmDataRepository(Realm realm) {
-        this.realm = realm;
+        mRealm = realm;
     }
 
     public static RealmDataRepository getDefaultInstance() {
@@ -53,12 +54,19 @@ public class RealmDataRepository {
         Realm.compactRealm(realm.getConfiguration());
     }
 
-    public Realm getRealmInstance() {
-        return realm;
+    private Realm getRealmInstance() {
+        return mRealm;
     }
 
     public void saveSessionInRealm(final String sessionId, final Session session) {
-        realm.executeTransactionAsync(new Realm.Transaction() {
+        Session storedSession = mRealm.where(Session.class).equalTo("id", sessionId).findFirst();
+        if (storedSession == null) {
+            updateSessionInRealm(sessionId, session);
+        }
+    }
+
+    public void updateSessionInRealm(final String sessionId, final Session session) {
+        mRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm bgRealm) {
                 List<Speaker> speakers = session.getSpeakers();
@@ -69,6 +77,7 @@ public class RealmDataRepository {
                         if (stored != null) {
                             newSpeakers.add(stored);
                         } else {
+                            LogUtils.LOGE("Speaker", "New added");
                             newSpeakers.add(speaker);
                         }
                     }
@@ -103,46 +112,16 @@ public class RealmDataRepository {
         });
     }
 
-    public void saveTrackInRealm(final Track track) {
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm bgRealm) {
-                bgRealm.copyToRealmOrUpdate(track);
-            }
-        }, new Realm.Transaction.OnSuccess() {
-            @Override
-            public void onSuccess() {
-                LogUtils.LOGE(LOG_TAG, "Track Updated");
-            }
-        }, new Realm.Transaction.OnError() {
-            @Override
-            public void onError(Throwable error) {
-                LogUtils.LOGE(LOG_TAG, error.getMessage());
-            }
-        });
+    public RealmResults<Session> getSessionsByDay(final String sessionDate) {
+        return mRealm.where(Session.class).equalTo("sessiondate", sessionDate).findAllSortedAsync("starttime");
     }
 
-    public void saveSpeakerInRealm(final Speaker speaker) {
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm bgRealm) {
-                bgRealm.copyToRealmOrUpdate(speaker);
-            }
-        }, new Realm.Transaction.OnSuccess() {
-            @Override
-            public void onSuccess() {
-                LogUtils.LOGE(LOG_TAG, "Speaker Updated");
-            }
-        }, new Realm.Transaction.OnError() {
-            @Override
-            public void onError(Throwable error) {
-                LogUtils.LOGE(LOG_TAG, error.getMessage());
-            }
-        });
+    public Session getSessionById(final String sessionId) {
+        return mRealm.where(Session.class).equalTo("id", sessionId).findFirst();
     }
 
     public void deleteSessionFromRealm(final String sessionId) {
-        realm.executeTransactionAsync(new Realm.Transaction() {
+        mRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm bgRealm) {
                 RealmObject deleteSession = bgRealm.where(Session.class).equalTo("id", sessionId).findFirst();
@@ -163,11 +142,38 @@ public class RealmDataRepository {
         });
     }
 
-    public void deleteTrackFromRealm(final String trackName) {
-        realm.executeTransactionAsync(new Realm.Transaction() {
+    public void saveTrackInRealm(final String trackId, final Track track) {
+        Track searchTrack = mRealm.where(Track.class).equalTo("id", trackId).findFirst();
+        if (searchTrack == null) {
+            updateTrackInRealm(trackId, track);
+        }
+    }
+
+    public void updateTrackInRealm(final String trackId, final Track track) {
+        mRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm bgRealm) {
-                RealmObject deleteTrack = bgRealm.where(Track.class).equalTo("name", trackName).findFirst();
+                track.setId(trackId);
+                bgRealm.copyToRealmOrUpdate(track);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                LogUtils.LOGE(LOG_TAG, "Track Updated");
+            }
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                LogUtils.LOGE(LOG_TAG, error.getMessage());
+            }
+        });
+    }
+
+    public void deleteTrackFromRealm(final String trackId) {
+        mRealm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm bgRealm) {
+                RealmObject deleteTrack = bgRealm.where(Track.class).equalTo("id", trackId).findFirst();
                 if (deleteTrack.isValid()) {
                     deleteTrack.deleteFromRealm();
                 }
@@ -185,11 +191,38 @@ public class RealmDataRepository {
         });
     }
 
-    public void deleteSpeakerFromRealm(final String speakerName) {
-        realm.executeTransactionAsync(new Realm.Transaction() {
+    public void saveSpeakerInRealm(final String speakerId, final Speaker speaker) {
+        Speaker searchSpeaker = mRealm.where(Speaker.class).equalTo("id", speakerId).findFirst();
+        if (searchSpeaker == null) {
+            updateSpeakerInRealm(speakerId, speaker);
+        }
+    }
+
+    public void updateSpeakerInRealm(final String speakerId, final Speaker speaker) {
+        mRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm bgRealm) {
-                RealmObject deleteSpeaker = bgRealm.where(Speaker.class).equalTo("name", speakerName).findFirst();
+                speaker.setId(speakerId);
+                bgRealm.copyToRealmOrUpdate(speaker);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                LogUtils.LOGE(LOG_TAG, "Speaker Updated");
+            }
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                LogUtils.LOGE(LOG_TAG, error.getMessage());
+            }
+        });
+    }
+
+    public void deleteSpeakerFromRealm(final String speakerId) {
+        mRealm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm bgRealm) {
+                RealmObject deleteSpeaker = bgRealm.where(Speaker.class).equalTo("id", speakerId).findFirst();
                 if (deleteSpeaker.isValid()) {
                     deleteSpeaker.deleteFromRealm();
                 }
@@ -205,5 +238,58 @@ public class RealmDataRepository {
                 LogUtils.LOGE(LOG_TAG, error.getMessage());
             }
         });
+    }
+
+    public void saveEventInRealm(final String eventId, final Event event) {
+        Event storedEvent = mRealm.where(Event.class).equalTo("id", eventId).findFirst();
+        if (storedEvent == null) {
+            updateEventInRealm(eventId, event);
+        }
+    }
+
+    public void updateEventInRealm(final String eventId, final Event event) {
+        mRealm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm bgRealm) {
+                event.setId(eventId);
+                bgRealm.copyToRealmOrUpdate(event);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                LogUtils.LOGE(LOG_TAG, "Event Updated");
+            }
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                LogUtils.LOGE(LOG_TAG, error.getMessage());
+            }
+        });
+    }
+
+    public void deleteEventFromRealm(final String eventId) {
+        mRealm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm bgRealm) {
+                RealmObject deleteEvent = bgRealm.where(Event.class).equalTo("id", eventId).findFirst();
+                if (deleteEvent.isValid()) {
+                    deleteEvent.deleteFromRealm();
+                }
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                LogUtils.LOGE(LOG_TAG, "Event Deleted");
+            }
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                LogUtils.LOGE(LOG_TAG, error.getMessage());
+            }
+        });
+    }
+
+    public RealmResults<Event> getEvent() {
+        return mRealm.where(Event.class).findAllAsync();
     }
 }

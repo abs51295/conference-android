@@ -1,6 +1,5 @@
 package com.systers.conference.schedule;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
@@ -12,26 +11,35 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.systers.conference.R;
-import com.systers.conference.schedule.dummy.DummyContent;
+import com.systers.conference.db.RealmDataRepository;
+import com.systers.conference.model.Session;
 import com.systers.conference.views.stickyheadersrecyclerview.StickyRecyclerHeadersDecoration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
+import io.realm.RealmResults;
 
 /**
  * A fragment representing a list of Items.
  */
 public class DayWiseScheduleFragment extends Fragment {
 
-    // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
+    private static final String ARG_SESSION_DATE = "session-date";
     @BindView(R.id.list)
     RecyclerView mRecyclerView;
-    // TODO: Customize parameters
     private int mColumnCount = 1;
+    private String sessionDate;
     private Unbinder unbinder;
-
+    private RealmResults<Session> sessions;
+    private RealmDataRepository realmRepo = RealmDataRepository.getDefaultInstance();
+    private List<Session> mSessions = new ArrayList<>();
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -40,12 +48,12 @@ public class DayWiseScheduleFragment extends Fragment {
     public DayWiseScheduleFragment() {
     }
 
-    // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static DayWiseScheduleFragment newInstance(int columnCount) {
+    public static DayWiseScheduleFragment newInstance(int columnCount, String sessionDate) {
         DayWiseScheduleFragment fragment = new DayWiseScheduleFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
+        args.putString(ARG_SESSION_DATE, sessionDate);
         fragment.setArguments(args);
         return fragment;
     }
@@ -55,6 +63,7 @@ public class DayWiseScheduleFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
+            sessionDate = getArguments().getString(ARG_SESSION_DATE);
         }
     }
 
@@ -64,7 +73,17 @@ public class DayWiseScheduleFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_schedule_list, container, false);
         unbinder = ButterKnife.bind(this, view);
-
+        final DayWiseScheduleAdapter scheduleAdapter = new DayWiseScheduleAdapter(mSessions, getActivity());
+        sessions = realmRepo.getSessionsByDay(sessionDate);
+        sessions.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Session>>() {
+            @Override
+            public void onChange(RealmResults<Session> sessions, OrderedCollectionChangeSet changeSet) {
+                mSessions.clear();
+                mSessions.addAll(sessions);
+                scheduleAdapter.setSessions(mSessions);
+                scheduleAdapter.notifyDataSetChanged();
+            }
+        });
         // Set the adapter
         if (mRecyclerView != null) {
             if (mColumnCount <= 1) {
@@ -72,29 +91,24 @@ public class DayWiseScheduleFragment extends Fragment {
             } else {
                 mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), mColumnCount));
             }
-            ConferenceScheduleRecyclerViewAdapter conferenceScheduleRecyclerViewAdapter = new ConferenceScheduleRecyclerViewAdapter(DummyContent.ITEMS);
-            mRecyclerView.setAdapter(conferenceScheduleRecyclerViewAdapter);
-            final StickyRecyclerHeadersDecoration headersDecoration = new StickyRecyclerHeadersDecoration(conferenceScheduleRecyclerViewAdapter);
+            mRecyclerView.setAdapter(scheduleAdapter);
+            final StickyRecyclerHeadersDecoration headersDecoration = new StickyRecyclerHeadersDecoration(scheduleAdapter);
             mRecyclerView.addItemDecoration(headersDecoration);
+            scheduleAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+                @Override
+                public void onChanged() {
+                    headersDecoration.invalidateHeaders();
+                }
+            });
             mRecyclerView.addItemDecoration(new DividerItemDecoration(mRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
         }
         return view;
-    }
-
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
+        sessions.removeAllChangeListeners();
     }
 }

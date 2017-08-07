@@ -13,32 +13,31 @@
     android:paddingTop="16dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/list_item_icon"
+        android:id="@+id/speaker_avatar_icon"
         android:layout_width="@dimen/speaker_avatar_size"
-        android:layout_height="@dimen/speaker_avatar_size"
-        android:src="@drawable/anita_borg_logo" />
+        android:layout_height="@dimen/speaker_avatar_size" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
+        android:paddingEnd="@dimen/content_margin"
         android:paddingLeft="@dimen/content_margin"
+        android:paddingRight="@dimen/content_margin"
         android:paddingStart="@dimen/content_margin">
 
         <TextView
-            android:id="@+id/version_name"
+            android:id="@+id/speaker_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/speaker_name"
             android:textColor="@android:color/primary_text_light"
             tools:text="Aagam Shah" />
 
         <TextView
-            android:id="@+id/version_number"
+            android:id="@+id/speaker_role"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/speaker_position"
             android:textColor="@android:color/secondary_text_light"
             tools:text="GSoC Developer at Anita Borg Institute" />
 

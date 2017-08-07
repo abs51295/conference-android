@@ -60,7 +60,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(AccountUtils.getLoginVisited(this)){
+        if (AccountUtils.getLoginVisited(this)) {
             startActivity(new Intent(this, PreRegistrationActivity.class));
             ActivityCompat.finishAffinity(this);
         }
@@ -90,7 +90,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             }
         });
     }
-
+    
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         LogUtils.LOGE(LOG_TAG, connectionResult.getErrorMessage());

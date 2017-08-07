@@ -13,20 +13,25 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.systers.conference.db.RealmDataRepository;
+import com.systers.conference.model.Event;
 import com.systers.conference.model.Session;
 import com.systers.conference.model.Speaker;
 import com.systers.conference.model.Track;
+import com.systers.conference.util.LogUtils;
 
 /**
  * Extend this activity to provide real-time updation of Realm DB.
  * Provides an app-wide mechanism to sync Firebase and Realm.
  */
 public abstract class BaseActivity extends AppCompatActivity {
+    private static final String LOG_TAG = LogUtils.makeLogTag(BaseActivity.class);
     private DatabaseReference mFireBaseDatabaseRef;
     private ChildEventListener mSessionChildListener;
     private ChildEventListener mSpeakerChildListener;
     private ChildEventListener mTrackChildListener;
-    private RealmDataRepository realmRepo = RealmDataRepository.getDefaultInstance();
+    private ChildEventListener mEventChildListener;
+    private RealmDataRepository mRealmRepo = RealmDataRepository.getDefaultInstance();
+    private Gson gson = new GsonBuilder().create();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -40,102 +45,135 @@ public abstract class BaseActivity extends AppCompatActivity {
         mSessionChildListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Gson gson = new GsonBuilder().create();
-                String jsonString = gson.toJson(dataSnapshot.getValue());
-                Session session = gson.fromJson(jsonString, new TypeToken<Session>() {
-                }.getType());
-                realmRepo.saveSessionInRealm(dataSnapshot.getKey(), session);
+                mRealmRepo.saveSessionInRealm(dataSnapshot.getKey(), getSessionFromDataSnapshot(dataSnapshot));
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                onChildAdded(dataSnapshot, s);
+                mRealmRepo.updateSessionInRealm(dataSnapshot.getKey(), getSessionFromDataSnapshot(dataSnapshot));
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Gson gson = new GsonBuilder().create();
-                String sessionJson = gson.toJson(dataSnapshot.getValue());
-                Session session = gson.fromJson(sessionJson, new TypeToken<Session>() {
-                }.getType());
-                realmRepo.deleteSessionFromRealm(session.getId());
+                mRealmRepo.deleteSessionFromRealm(dataSnapshot.getKey());
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                LogUtils.LOGD(LOG_TAG, s);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+                LogUtils.LOGE(LOG_TAG, databaseError.getMessage());
             }
         };
         mSpeakerChildListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Gson gson = new GsonBuilder().create();
-                String speakerJson = gson.toJson(dataSnapshot.getValue());
-                Speaker speaker = gson.fromJson(speakerJson, new TypeToken<Speaker>() {
-                }.getType());
-                realmRepo.saveSpeakerInRealm(speaker);
+                mRealmRepo.saveSpeakerInRealm(dataSnapshot.getKey(), getSpeakerFromDataSnapshot(dataSnapshot));
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                onChildAdded(dataSnapshot, s);
+                mRealmRepo.updateSpeakerInRealm(dataSnapshot.getKey(), getSpeakerFromDataSnapshot(dataSnapshot));
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Gson gson = new GsonBuilder().create();
-                String speakerJson = gson.toJson(dataSnapshot.getValue());
-                Speaker speaker = gson.fromJson(speakerJson, new TypeToken<Speaker>() {
-                }.getType());
-                realmRepo.deleteSpeakerFromRealm(speaker.getName());
+                mRealmRepo.deleteSpeakerFromRealm(dataSnapshot.getKey());
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                LogUtils.LOGD(LOG_TAG, s);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+                LogUtils.LOGE(LOG_TAG, databaseError.getMessage());
             }
         };
         mTrackChildListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Gson gson = new GsonBuilder().create();
-                String trackJson = gson.toJson(dataSnapshot.getValue());
-                Track track = gson.fromJson(trackJson, new TypeToken<Track>() {
-                }.getType());
-                realmRepo.saveTrackInRealm(track);
+                mRealmRepo.saveTrackInRealm(dataSnapshot.getKey(), getTrackFromDataSnapshot(dataSnapshot));
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                onChildAdded(dataSnapshot, s);
+                mRealmRepo.updateTrackInRealm(dataSnapshot.getKey(), getTrackFromDataSnapshot(dataSnapshot));
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Gson gson = new GsonBuilder().create();
-                String trackJson = gson.toJson(dataSnapshot.getValue());
-                Track track = gson.fromJson(trackJson, new TypeToken<Track>() {
-                }.getType());
-                realmRepo.deleteTrackFromRealm(track.getName());
+                mRealmRepo.deleteTrackFromRealm(dataSnapshot.getKey());
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                LogUtils.LOGD(LOG_TAG, s);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+                LogUtils.LOGE(LOG_TAG, databaseError.getMessage());
             }
         };
-        mFireBaseDatabaseRef.child("Sessions").addChildEventListener(mSessionChildListener);
+        mEventChildListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                mRealmRepo.saveEventInRealm(dataSnapshot.getKey(), getEventFromDataSnapshot(dataSnapshot));
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                mRealmRepo.updateEventInRealm(dataSnapshot.getKey(), getEventFromDataSnapshot(dataSnapshot));
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                mRealmRepo.deleteEventFromRealm(dataSnapshot.getKey());
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                LogUtils.LOGD(LOG_TAG, s);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                LogUtils.LOGE(LOG_TAG, databaseError.getMessage());
+            }
+        };
+        mFireBaseDatabaseRef.child("Event").addChildEventListener(mEventChildListener);
         mFireBaseDatabaseRef.child("Speakers").addChildEventListener(mSpeakerChildListener);
         mFireBaseDatabaseRef.child("Tracks").addChildEventListener(mTrackChildListener);
+        mFireBaseDatabaseRef.child("Sessions").addChildEventListener(mSessionChildListener);
+    }
+
+    private Session getSessionFromDataSnapshot(DataSnapshot dataSnapshot) {
+        String sessionJson = gson.toJson(dataSnapshot.getValue());
+        return gson.fromJson(sessionJson, new TypeToken<Session>() {
+        }.getType());
+    }
+
+    private Speaker getSpeakerFromDataSnapshot(DataSnapshot dataSnapshot) {
+        String speakerJson = gson.toJson(dataSnapshot.getValue());
+        return gson.fromJson(speakerJson, new TypeToken<Speaker>() {
+        }.getType());
+    }
+
+    private Track getTrackFromDataSnapshot(DataSnapshot dataSnapshot) {
+        String trackJson = gson.toJson(dataSnapshot.getValue());
+        return gson.fromJson(trackJson, new TypeToken<Track>() {
+        }.getType());
+    }
+
+    private Event getEventFromDataSnapshot(DataSnapshot dataSnapshot) {
+        String eventJson = gson.toJson(dataSnapshot.getValue());
+        return gson.fromJson(eventJson, new TypeToken<Event>() {
+        }.getType());
     }
 
     @Override
@@ -149,6 +187,9 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
         if (mTrackChildListener != null) {
             mFireBaseDatabaseRef.child("Tracks").removeEventListener(mTrackChildListener);
+        }
+        if (mEventChildListener != null) {
+            mFireBaseDatabaseRef.child("Event").removeEventListener(mEventChildListener);
         }
     }
 

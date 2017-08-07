@@ -40,10 +40,9 @@ public class AccountUtils {
         return !TextUtils.isEmpty(getActiveGoogleAccount(context));
     }
 
-    @Nullable
     public static String getActiveGoogleAccount(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_GOOGLE_ID) ? preferences.getString(PREFIX_PREF_GOOGLE_ID, null) : null;
+        return preferences.contains(PREFIX_PREF_GOOGLE_ID) ? preferences.getString(PREFIX_PREF_GOOGLE_ID, null) : "";
     }
 
     public static void setActiveGoggleAccount(final Context context, final String accountId) {
@@ -62,10 +61,9 @@ public class AccountUtils {
         return !TextUtils.isEmpty(getActiveFacebookAccount(context));
     }
 
-    @Nullable
     public static String getActiveFacebookAccount(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_FB_ID) ? preferences.getString(PREFIX_PREF_FB_ID, null) : null;
+        return preferences.contains(PREFIX_PREF_FB_ID) ? preferences.getString(PREFIX_PREF_FB_ID, null) : "";
     }
 
     public static void setActiveFacebookAccount(final Context context, final String accountId) {
@@ -90,7 +88,7 @@ public class AccountUtils {
     @Nullable
     public static String getFirstName(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_FIRST_NAME) ? preferences.getString(PREFIX_PREF_FIRST_NAME, null) : null;
+        return preferences.contains(PREFIX_PREF_FIRST_NAME) ? preferences.getString(PREFIX_PREF_FIRST_NAME, null) : "";
     }
 
     public static void setLastName(final Context context, final String lastName) {
@@ -103,7 +101,7 @@ public class AccountUtils {
     @Nullable
     public static String getLastName(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_LAST_NAME) ? preferences.getString(PREFIX_PREF_LAST_NAME, null) : null;
+        return preferences.contains(PREFIX_PREF_LAST_NAME) ? preferences.getString(PREFIX_PREF_LAST_NAME, null) : "";
     }
 
     public static void setEmail(final Context context, final String email) {
@@ -115,7 +113,7 @@ public class AccountUtils {
 
     public static String getEmail(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_EMAIL) ? preferences.getString(PREFIX_PREF_EMAIL, null) : null;
+        return preferences.contains(PREFIX_PREF_EMAIL) ? preferences.getString(PREFIX_PREF_EMAIL, null) : "";
     }
 
     public static void setProfilePictureUrl(final Context context, final String url) {
@@ -127,7 +125,7 @@ public class AccountUtils {
     @Nullable
     public static String getProfilePictureUrl(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_PHOTO_URL) ? preferences.getString(PREFIX_PREF_PHOTO_URL, null) : null;
+        return preferences.contains(PREFIX_PREF_PHOTO_URL) ? preferences.getString(PREFIX_PREF_PHOTO_URL, null) : "";
     }
 
     public static void setCompanyName(final Context context, final String companyName) {
@@ -138,7 +136,7 @@ public class AccountUtils {
     @Nullable
     public static String getCompanyName(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_COMPANY) ? preferences.getString(PREFIX_PREF_COMPANY, null) : null;
+        return preferences.contains(PREFIX_PREF_COMPANY) ? preferences.getString(PREFIX_PREF_COMPANY, null) : "";
     }
 
     public static void setCompanyRole(final Context context, final String companyRole) {
@@ -149,21 +147,19 @@ public class AccountUtils {
     @Nullable
     public static String getCompanyRole(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_ROLE) ? preferences.getString(PREFIX_PREF_ROLE, null) : null;
+        return preferences.contains(PREFIX_PREF_ROLE) ? preferences.getString(PREFIX_PREF_ROLE, null) : "";
     }
-
+  
     public static void setAccessToken(final Context context, final String accessToken) {
         SharedPreferences preferences = getSharedPreferences(context);
         preferences.edit().putString(PREFIX_PREF_ACCESS_TOKEN, accessToken).apply();
         LOGE(LOG_TAG, "Setting access token to: " + accessToken);
     }
 
-    @Nullable
     public static String getAccessToken(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
         return preferences.contains(PREFIX_PREF_ACCESS_TOKEN) ? preferences.getString(PREFIX_PREF_ACCESS_TOKEN, null) : "";
     }
-
     public static void setRegisterVisited(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
         preferences.edit().putBoolean(PREFIX_PREF_REGISTER, true).apply();

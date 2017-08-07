@@ -9,6 +9,7 @@ public class Speaker extends RealmObject {
     @LinkingObjects("speakers")
     private final RealmResults<Session> sessions = null;
     @PrimaryKey
+    private String id;
     private String name;
     private String role;
     private String company;
@@ -102,5 +103,13 @@ public class Speaker extends RealmObject {
 
     public RealmResults<Session> getSessions() {
         return sessions;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

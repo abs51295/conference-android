@@ -1,9 +1,95 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/fragment"
-    android:name="com.systers.conference.event.EventDetailFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:layout="@layout/fragment_event_detail" />
+    tools:showIn="@layout/activity_event_detail">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/content_margin">
+
+            <TextView
+                android:id="@+id/event_title"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="true"
+                tools:text="@string/event_title" />
+
+
+            <TextView
+                android:id="@+id/room"
+                style="@style/Metadata"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/content_margin"
+                android:saveEnabled="false"
+                tools:text="Janson (Building J)" />
+
+            <TextView
+                android:id="@+id/time"
+                style="@style/Metadata"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                tools:text="Day 1 (Saturday), 09:30 - 09:55" />
+
+            <TextView
+                android:id="@+id/audience_level"
+                style="@style/Metadata"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:saveEnabled="false"
+                tools:text="Beginner/Intermediate" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/description_header"
+            style="@style/Header"
+            android:layout_marginLeft="@dimen/content_margin"
+            android:layout_marginRight="@dimen/content_margin"
+            android:layout_marginTop="@dimen/content_margin"
+            android:text="@string/description" />
+
+        <TextView
+            android:id="@+id/event_description"
+            style="@style/Base.TextAppearance.AppCompat.Body1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/content_margin"
+            android:layout_marginStart="@dimen/content_margin"
+            tools:text="Welcome to Grace Hopper Conference" />
+
+        <TextView
+            android:id="@+id/speakers_header"
+            style="@style/Header"
+            android:layout_marginLeft="@dimen/content_margin"
+            android:layout_marginRight="@dimen/content_margin"
+            android:layout_marginTop="@dimen/content_margin"
+            android:text="@string/speakers" />
+
+        <LinearLayout
+            android:id="@+id/speakers_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="?android:attr/listDivider"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/content_margin"
+            android:paddingLeft="@dimen/activity_vertical_margin"
+            android:paddingRight="@dimen/activity_vertical_margin"
+            android:showDividers="middle" />
+
+
+    </LinearLayout>
+</android.support.v4.widget.NestedScrollView>

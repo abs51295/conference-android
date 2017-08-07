@@ -2,7 +2,6 @@ package com.systers.conference;
 
 import android.animation.ObjectAnimator;
 import android.animation.StateListAnimator;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,7 +14,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,8 +27,7 @@ import com.systers.conference.util.LogUtils;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity
-        implements ScheduleFragment.OnFragmentInteractionListener {
+public class MainActivity extends BaseActivity {
 
     private static final String STATE_CURRENT_SECTION = "current_section";
     private static final String LOG_TAG = LogUtils.makeLogTag(MainActivity.class);
@@ -220,10 +217,6 @@ public class MainActivity extends AppCompatActivity
         fragmentTransaction.commit();
         mCurrentSection = section;
         updateActionBar();
-    }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
     }
 
     private enum Section {

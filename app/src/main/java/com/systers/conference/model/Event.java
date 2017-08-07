@@ -1,18 +1,14 @@
 package com.systers.conference.model;
 
 import io.realm.RealmObject;
-import io.realm.RealmResults;
-import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 
-
-public class Track extends RealmObject {
-    @LinkingObjects("tracks")
-    private final RealmResults<Session> sessions = null;
+public class Event extends RealmObject {
     @PrimaryKey
     private String id;
     private String name;
-    private String color;
+    private String startdate;
+    private String enddate;
 
     public String getName() {
         return name;
@@ -22,16 +18,20 @@ public class Track extends RealmObject {
         this.name = name;
     }
 
-    public String getColor() {
-        return color;
+    public String getStartDate() {
+        return startdate;
     }
 
-    public void setColor(String color) {
-        this.color = color;
+    public void setStartDate(String startDate) {
+        this.startdate = startDate;
     }
 
-    public RealmResults<Session> getSessions() {
-        return sessions;
+    public String getEndDate() {
+        return enddate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.enddate = endDate;
     }
 
     public String getId() {

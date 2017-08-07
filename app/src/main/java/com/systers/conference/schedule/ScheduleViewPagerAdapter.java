@@ -7,16 +7,12 @@ import android.support.v4.app.FragmentPagerAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Aagam Shah on 6/3/2017.
- */
-
-public class ScheduleViewPagerAdapter extends FragmentPagerAdapter {
+class ScheduleViewPagerAdapter extends FragmentPagerAdapter {
 
     private final List<Fragment> mFragmentList = new ArrayList<>();
     private final List<String> mFragmentTitleList = new ArrayList<>();
 
-    public ScheduleViewPagerAdapter(FragmentManager fm) {
+    ScheduleViewPagerAdapter(FragmentManager fm) {
         super(fm);
     }
 
@@ -25,9 +21,14 @@ public class ScheduleViewPagerAdapter extends FragmentPagerAdapter {
         return mFragmentList.get(position);
     }
 
-    public void addFragment(Fragment fragment, String title) {
+    void addFragment(Fragment fragment, String title) {
         mFragmentList.add(fragment);
         mFragmentTitleList.add(title);
+    }
+
+    void removeAllFragments() {
+        mFragmentList.clear();
+        mFragmentTitleList.clear();
     }
 
     @Override
