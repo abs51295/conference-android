@@ -6,8 +6,6 @@
     android:name="com.systers.conference.schedule.ScheduleFragment"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="@dimen/content_margin"
-    android:layout_marginRight="@dimen/content_margin"
     android:clipToPadding="false"
     android:fadeScrollbars="true"
     android:scrollbars="vertical"

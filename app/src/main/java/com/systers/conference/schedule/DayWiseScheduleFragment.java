@@ -32,6 +32,7 @@ public class DayWiseScheduleFragment extends Fragment {
 
     private static final String ARG_COLUMN_COUNT = "column-count";
     private static final String ARG_SESSION_DATE = "session-date";
+    private static final String ACTIVITY_TITLE = "activity-title";
     @BindView(R.id.list)
     RecyclerView mRecyclerView;
     private int mColumnCount = 1;
@@ -40,6 +41,7 @@ public class DayWiseScheduleFragment extends Fragment {
     private RealmResults<Session> sessions;
     private RealmDataRepository realmRepo = RealmDataRepository.getDefaultInstance();
     private List<Session> mSessions = new ArrayList<>();
+    private String activityTitle;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -68,13 +70,20 @@ public class DayWiseScheduleFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_schedule_list, container, false);
         unbinder = ButterKnife.bind(this, view);
         final DayWiseScheduleAdapter scheduleAdapter = new DayWiseScheduleAdapter(mSessions, getActivity());
-        sessions = realmRepo.getSessionsByDay(sessionDate);
+        if (savedInstanceState == null) {
+            activityTitle = getActivity().getTitle().toString();
+        } else {
+            activityTitle = savedInstanceState.getString(ACTIVITY_TITLE);
+        }
+        if (activityTitle.equals(getString(R.string.schedule_title))) {
+            sessions = realmRepo.getSessionsByDay(sessionDate);
+        } else if (activityTitle.equals(getString(R.string.myschedule_title))) {
+            sessions = realmRepo.getBookmarkedSessions(sessionDate);
+        }
         sessions.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Session>>() {
             @Override
             public void onChange(RealmResults<Session> sessions, OrderedCollectionChangeSet changeSet) {
@@ -103,6 +112,12 @@ public class DayWiseScheduleFragment extends Fragment {
             mRecyclerView.addItemDecoration(new DividerItemDecoration(mRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
         }
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(ACTIVITY_TITLE, activityTitle);
     }
 
     @Override

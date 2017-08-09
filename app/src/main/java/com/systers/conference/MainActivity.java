@@ -165,6 +165,10 @@ public class MainActivity extends BaseActivity {
                     mNavigationView.getMenu().findItem(itemId).setChecked(true);
                     updateUI(Section.SCHEDULE);
                     break;
+                case R.id.nav_gallery:
+                    mNavigationView.getMenu().findItem(itemId).setChecked(true);
+                    updateUI(Section.MYSCHEDULE);
+                    break;
                 case R.id.imageView:
                     updateUI(Section.PROFILE);
                     break;
@@ -176,6 +180,9 @@ public class MainActivity extends BaseActivity {
         switch (itemId) {
             case R.id.nav_camera:
                 mCurrentSection = Section.SCHEDULE;
+                break;
+            case R.id.nav_gallery:
+                mCurrentSection = Section.MYSCHEDULE;
                 break;
             case R.id.imageView:
                 mCurrentSection = Section.PROFILE;
@@ -220,6 +227,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private enum Section {
+        MYSCHEDULE(ScheduleFragment.class, R.string.myschedule_title, true, true),
         SCHEDULE(ScheduleFragment.class, R.string.schedule_title, true, true),
         PROFILE(ProfileFragment.class, R.string.profile_title, false, false);
 

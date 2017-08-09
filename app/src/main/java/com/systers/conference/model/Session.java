@@ -16,6 +16,7 @@ public class Session extends RealmObject {
     private String sessiontype;
     private String location;
     private String description;
+    private boolean isBookmarked;
     private RealmList<Track> tracks;
     private RealmList<Speaker> speakers;
 
@@ -97,5 +98,13 @@ public class Session extends RealmObject {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public boolean isBookmarked() {
+        return isBookmarked;
+    }
+
+    public void setBookmarked(boolean bookmarked) {
+        isBookmarked = bookmarked;
     }
 }

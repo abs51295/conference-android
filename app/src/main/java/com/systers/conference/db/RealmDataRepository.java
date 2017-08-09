@@ -120,6 +120,29 @@ public class RealmDataRepository {
         return mRealm.where(Session.class).equalTo("id", sessionId).findFirst();
     }
 
+    public RealmResults<Session> getBookmarkedSessions(final String sessionDate) {
+        return mRealm.where(Session.class).equalTo("sessiondate", sessionDate).equalTo("isBookmarked", true).findAllSortedAsync("starttime");
+    }
+
+    public void setBookmark(final String sessionId, final boolean bookmark) {
+        mRealm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm bgRealm) {
+                bgRealm.where(Session.class).equalTo("id", sessionId).findFirst().setBookmarked(bookmark);
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                LogUtils.LOGE(LOG_TAG, "Bookmark toggled");
+            }
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                LogUtils.LOGE(LOG_TAG, error.getMessage());
+            }
+        });
+    }
+
     public void deleteSessionFromRealm(final String sessionId) {
         mRealm.executeTransactionAsync(new Realm.Transaction() {
             @Override

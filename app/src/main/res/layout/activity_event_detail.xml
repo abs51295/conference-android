@@ -51,6 +51,13 @@
             app:fab_colorNormal="@android:color/white"
             app:fab_title="@string/share" />
 
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/bookmark_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@android:color/white"
+            app:fab_title="" />
+
     </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
 </android.support.design.widget.CoordinatorLayout>

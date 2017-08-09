@@ -10,6 +10,7 @@ import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -61,6 +62,8 @@ public class EventDetailActivity extends BaseActivity {
     FloatingActionButton mCal;
     @BindView(R.id.share_fab)
     FloatingActionButton mShare;
+    @BindView(R.id.bookmark_fab)
+    FloatingActionButton mBookmark;
     @BindView(R.id.speakers_container)
     ViewGroup mSpeakers;
     @BindView(R.id.speakers_header)
@@ -88,6 +91,17 @@ public class EventDetailActivity extends BaseActivity {
         startActivity(getShareChooserIntent());
     }
 
+    @OnClick(R.id.bookmark_fab)
+    public void toggleBookmark() {
+        if (mSession != null) {
+            if (mSession.isBookmarked()) {
+                mRealmRepo.setBookmark(mSession.getId(), false);
+            } else {
+                mRealmRepo.setBookmark(mSession.getId(), true);
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,12 +109,12 @@ public class EventDetailActivity extends BaseActivity {
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        setDrawables();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        setDrawables();
         mSession = mRealmRepo.getSessionById(getIntent().getStringExtra(DayWiseScheduleViewHolder.SESSION_ID));
         updateSession();
         updateSpeakers();
@@ -154,6 +168,15 @@ public class EventDetailActivity extends BaseActivity {
             descriptiveDate = DateTimeUtil.getDateDescriptive(date);
         }
         mTime.setText(descriptiveDate + ", " + startTime + " - " + endTime);
+        if (mSession.isBookmarked()) {
+            Drawable iconDrawable = AppCompatResources.getDrawable(this, R.drawable.ic_bookmark_grey600_24dp);
+            mBookmark.setIconDrawable(iconDrawable);
+            mBookmark.setTitle(getString(R.string.remove_from_bookmarks));
+        } else {
+            Drawable iconDrawable = AppCompatResources.getDrawable(this, R.drawable.ic_bookmark_border_grey600_24dp);
+            mBookmark.setIconDrawable(iconDrawable);
+            mBookmark.setTitle(getString(R.string.add_to_bookmarks));
+        }
     }
 
     private void updateSpeakers() {
@@ -192,6 +215,17 @@ public class EventDetailActivity extends BaseActivity {
             mFloatingActionsMenu.collapse();
         } else {
             super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
