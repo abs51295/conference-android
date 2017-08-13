@@ -11,9 +11,9 @@
     <ImageView
         android:id="@+id/logo"
         style="@style/AuthMethodPicker.Logo"
-        app:layout_constraintBottom_toTopOf="@+id/container"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/container"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/anita_borg_logo"
         tools:ignore="ContentDescription" />
@@ -23,10 +23,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.9"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.9">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:id="@+id/btn_holder"
@@ -43,7 +43,6 @@
                 style="@style/AuthUI.Button.AccountChooser.TwitterButton"
                 android:text="@string/sign_in_with_twitter"
                 tools:ignore="UnusedIds" />
-
         </LinearLayout>
 
     </ScrollView>

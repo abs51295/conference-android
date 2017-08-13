@@ -312,7 +312,7 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
         if (result.isSuccess()) {
             GoogleSignInAccount googleSignInAccount = result.getSignInAccount();
             if (googleSignInAccount.getId() != null) {
-                AccountUtils.setActiveGoggleAccount(this, googleSignInAccount.getId());
+                AccountUtils.setActiveGoogleAccount(this, googleSignInAccount.getId());
                 mIsGoogleConnected = true;
                 updateGoogleButton();
             }

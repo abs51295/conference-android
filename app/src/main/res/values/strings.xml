@@ -23,6 +23,11 @@
     <string name="ask_for_registration">Do you wish to register?</string>
     <string name="registration_successfull">Successfully Registered</string>
     <string name="registration_unsuccessful">Registration Unsuccessful. Please try again!</string>
+    <string name="net_unavailable">Network not available</string>
+    <string name="turn_on">Turn on WiFi or Mobile Data in Settings</string>
+    <string name="close_app">Close application</string>
+    <string name="sign_in_cancelled">Sign In Cancelled</string>
+    <string name="unknown_error">Unknown Error Occurred</string>
 
     <!-- Strings for accessibility -->
     <!-- Content Description Strings -->
@@ -105,4 +110,8 @@
     <string name="title_activity_pre_registration">PreRegistration</string>
     <string name="title_activity_speaker_details">SpeakerDetails</string>
     <string name="title_map_fragment">Maps</string>
+
+    <!--Strings related to auth-->
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_in_with_twitter">Sign in with Twitter</string>
 </resources>

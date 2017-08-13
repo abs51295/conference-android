@@ -19,7 +19,7 @@
     <dimen name="button_margin_top">20dp</dimen>
     <dimen name="tab_max_width">150dp</dimen>
     <dimen name="tab_min_width">100dp</dimen>
-    <dimen name="logo_size">150dp</dimen>
+    <dimen name="logo_size">200dp</dimen>
     <dimen name="fb_button_margin">30dp</dimen>
     <dimen name="item_image_view_extra_large">250dp</dimen>
     <dimen name="speaker_details_margin">32dp</dimen>
@@ -28,4 +28,11 @@
     <dimen name="text_size_large">20sp</dimen>
     <dimen name="text_size_medium">18sp</dimen>
     <dimen name="text_size_normal">16sp</dimen>
+    <dimen name="auth_method_button_width">208dp</dimen>
+    <dimen name="button_inset_bottom">3dp</dimen>
+    <dimen name="button_inset_left">1dp</dimen>
+    <dimen name="button_inset_right">2dp</dimen>
+    <dimen name="button_inset_top">0dp</dimen>
+    <dimen name="auth_method_button_drawablePadding">12dp</dimen>
+    <dimen name="auth_method_button_margin">4dp</dimen>
 </resources>
