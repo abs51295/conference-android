@@ -1,40 +1,50 @@
 package com.systers.conference.login;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.content.res.AppCompatResources;
+import android.text.TextUtils;
+import android.widget.Button;
 
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
-import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.gson.Gson;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.TwitterAuthProvider;
 import com.systers.conference.R;
-import com.systers.conference.model.FacebookUser;
 import com.systers.conference.register.PreRegistrationActivity;
 import com.systers.conference.util.AccountUtils;
 import com.systers.conference.util.LogUtils;
-
-import org.json.JSONObject;
-
-import java.util.Arrays;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterApiClient;
+import com.twitter.sdk.android.core.TwitterCore;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.identity.TwitterAuthClient;
+import com.twitter.sdk.android.core.models.User;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import retrofit2.Call;
+import retrofit2.Response;
 
 
 /**
@@ -44,97 +54,65 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
     private static final String LOG_TAG = LogUtils.makeLogTag(LoginActivity.class);
     private static final int GOOGLE_SIGN_IN = 9001;
-    @BindView(R.id.google_sign_in_button)
-    SignInButton mSignInButton;
-    @BindView(R.id.fb_login_button)
-    LoginButton mLoginButton;
+    @BindView(R.id.root)
+    ConstraintLayout mRootView;
+    @BindView(R.id.google_button)
+    Button mGoogleSignInButton;
+    @BindView(R.id.twitter_button)
+    Button mTwitterSignInButton;
     private GoogleApiClient mGoogleApiClient;
-    private CallbackManager mCallbackManager;
+    private FirebaseAuth mFirebaseAuth;
+    private ProgressDialog mProgressDialog;
+    private TwitterAuthClient mTwitterAuthClient;
 
-    @OnClick(R.id.google_sign_in_button)
+    @OnClick(R.id.google_button)
     public void googleSignIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, GOOGLE_SIGN_IN);
     }
 
+    @OnClick(R.id.twitter_button)
+    public void twitterSignIn() {
+        mTwitterAuthClient.authorize(this, new Callback<TwitterSession>() {
+
+            @Override
+            public void success(Result<TwitterSession> result) {
+                handleTwitterSignInResult(result.data);
+            }
+
+            @Override
+            public void failure(TwitterException exception) {
+                Snackbar.make(mRootView, getString(R.string.registration_unsuccessful), Snackbar.LENGTH_LONG).show();
+                LogUtils.LOGE(LOG_TAG, exception.getMessage());
+            }
+        });
+    }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (AccountUtils.getLoginVisited(this)) {
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mTwitterAuthClient = new TwitterAuthClient();
+        if (mFirebaseAuth.getCurrentUser() != null) {
             startActivity(new Intent(this, PreRegistrationActivity.class));
             ActivityCompat.finishAffinity(this);
         }
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
-        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail()
+        setDrawables();
+        mProgressDialog = new ProgressDialog(this);
+        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).
+                requestIdToken(getString(R.string.default_web_client_id)).
+                requestEmail()
                 .build();
         mGoogleApiClient = new GoogleApiClient.Builder(this).enableAutoManage(this, this).addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions)
                 .build();
-        mSignInButton.setSize(SignInButton.SIZE_WIDE);
-        mCallbackManager = CallbackManager.Factory.create();
-        mLoginButton.setReadPermissions(Arrays.asList("public_profile", "email", "user_work_history"));
-        mLoginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                handleFbSignInResult(loginResult);
-            }
-
-            @Override
-            public void onCancel() {
-                LogUtils.LOGE(LOG_TAG, "Canceled");
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-                LogUtils.LOGE(LOG_TAG, error.toString());
-            }
-        });
     }
-    
+
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Snackbar.make(mRootView, getString(R.string.registration_unsuccessful), Snackbar.LENGTH_LONG).show();
         LogUtils.LOGE(LOG_TAG, connectionResult.getErrorMessage());
-    }
-
-    private void handleFbSignInResult(LoginResult loginResult) {
-        GraphRequest request = GraphRequest.newMeRequest(
-                loginResult.getAccessToken(),
-                new GraphRequest.GraphJSONObjectCallback() {
-
-                    @Override
-                    public void onCompleted(JSONObject object, GraphResponse response) {
-                        LogUtils.LOGE(LOG_TAG, object.toString());
-                        FacebookUser facebookUser = new Gson().fromJson(object.toString(), FacebookUser.class);
-                        if (facebookUser.getAccountId() != null) {
-                            AccountUtils.setActiveFacebookAccount(getApplicationContext(), facebookUser.getAccountId());
-                        }
-                        if (facebookUser.getFirstName() != null) {
-                            AccountUtils.setFirstName(getApplicationContext(), facebookUser.getFirstName());
-                        }
-                        if (facebookUser.getLastName() != null) {
-                            AccountUtils.setLastName(getApplicationContext(), facebookUser.getLastName());
-                        }
-                        if (facebookUser.getEmail() != null) {
-                            AccountUtils.setEmail(getApplicationContext(), facebookUser.getEmail());
-                        }
-                        if (facebookUser.getCompany() != null) {
-                            AccountUtils.setCompanyName(getApplicationContext(), facebookUser.getCompany());
-                        }
-                        if (facebookUser.getRole() != null) {
-                            AccountUtils.setCompanyRole(getApplicationContext(), facebookUser.getRole());
-                        }
-                        if (facebookUser.getPictureUrl() != null) {
-                            LogUtils.LOGE(LOG_TAG, facebookUser.getPictureUrl());
-                            AccountUtils.setProfilePictureUrl(getApplicationContext(), facebookUser.getPictureUrl());
-                        }
-                        startRegisterActivity();
-                    }
-                }
-        );
-        Bundle parameters = new Bundle();
-        parameters.putString("fields", "id,first_name,last_name,email,work,picture.type(large)");
-        request.setParameters(parameters);
-        request.executeAsync();
     }
 
     private void startRegisterActivity() {
@@ -145,6 +123,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
     private void handleGoogleSignInResult(GoogleSignInResult result) {
         if (result.isSuccess()) {
+            showProgressDialog();
             GoogleSignInAccount account = result.getSignInAccount();
             if (account.getGivenName() != null) {
                 AccountUtils.setFirstName(getApplicationContext(), account.getGivenName());
@@ -156,15 +135,107 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 AccountUtils.setEmail(getApplicationContext(), account.getEmail());
             }
             if (account.getId() != null) {
-                AccountUtils.setActiveGoggleAccount(getApplicationContext(), account.getId());
+                AccountUtils.setActiveGoogleAccount(getApplicationContext(), account.getId());
             }
             if (account.getPhotoUrl() != null) {
                 AccountUtils.setProfilePictureUrl(getApplicationContext(), account.getPhotoUrl().toString());
             }
-            startRegisterActivity();
+            firebaseAuthWithGoogle(account);
         } else {
             LogUtils.LOGE(LOG_TAG, "Failed Sign In");
         }
+    }
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+        mFirebaseAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        hideProgressDialog();
+                        if (task.isSuccessful()) {
+                            startRegisterActivity();
+                        } else {
+                            Snackbar.make(mRootView, getString(R.string.registration_unsuccessful), Snackbar.LENGTH_LONG).show();
+                            LogUtils.LOGE(LOG_TAG, task.toString());
+                        }
+                    }
+                });
+    }
+
+    private void handleTwitterSignInResult(final TwitterSession session) {
+        showProgressDialog();
+        TwitterApiClient apiClient = new TwitterApiClient(session);
+        TwitterCore.getInstance().addApiClient(session, apiClient);
+        TwitterCore.getInstance().getApiClient().getAccountService().verifyCredentials(false, true, true).enqueue(new retrofit2.Callback<User>() {
+            @Override
+            public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
+                if (response.isSuccessful()) {
+                    User user = response.body();
+                    if (!TextUtils.isEmpty(user.email)) {
+                        AccountUtils.setEmail(LoginActivity.this, user.email);
+                    }
+                    if (!user.defaultProfileImage) {
+                        AccountUtils.setProfilePictureUrl(LoginActivity.this, user.profileImageUrlHttps);
+                    }
+                    String[] name = user.name.split("\\s+");
+                    try {
+                        AccountUtils.setFirstName(LoginActivity.this, name[0]);
+                        AccountUtils.setLastName(LoginActivity.this, name[1]);
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        LogUtils.LOGE(LOG_TAG, "Complete name not set");
+                    }
+                    firebaseAuthWithTwitter(session);
+                } else {
+                    LogUtils.LOGE(LOG_TAG, response.message());
+                    hideProgressDialog();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
+                LogUtils.LOGE(LOG_TAG, t.getMessage());
+                hideProgressDialog();
+            }
+        });
+    }
+
+    private void firebaseAuthWithTwitter(final TwitterSession session) {
+        AuthCredential authCredential = TwitterAuthProvider.getCredential(
+                session.getAuthToken().token,
+                session.getAuthToken().secret
+        );
+        mFirebaseAuth.signInWithCredential(authCredential)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        hideProgressDialog();
+                        if (task.isSuccessful()) {
+                            startRegisterActivity();
+                        } else {
+                            Snackbar.make(mRootView, getString(R.string.registration_unsuccessful), Snackbar.LENGTH_LONG).show();
+                            LogUtils.LOGE(LOG_TAG, task.toString());
+                        }
+                    }
+                });
+    }
+
+    private void setDrawables() {
+        Drawable iconDrawable = AppCompatResources.getDrawable(this, R.drawable.ic_googleg_color_24dp);
+        mGoogleSignInButton.setCompoundDrawablesWithIntrinsicBounds(iconDrawable, null, null, null);
+        iconDrawable = AppCompatResources.getDrawable(this, R.drawable.ic_twitter_bird_white_24dp);
+        mTwitterSignInButton.setCompoundDrawablesWithIntrinsicBounds(iconDrawable, null, null, null);
+    }
+
+    private void showProgressDialog() {
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage(getString(R.string.progressdialog_message));
+        mProgressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        mProgressDialog.dismiss();
     }
 
     @Override
@@ -174,7 +245,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             handleGoogleSignInResult(result);
         } else {
-            mCallbackManager.onActivityResult(requestCode, resultCode, data);
+            mTwitterAuthClient.onActivityResult(requestCode, resultCode, data);
         }
     }
 }

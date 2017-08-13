@@ -1,6 +1,10 @@
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
 
+def TWITTER_API_KEY = '"' + TwitterApiKey + '"' ?: '"Twitter Login won\'t work. Please use the apk from the apk branch."'
+def TWITTER_API_SECRET = '"' + TwitterSecretKey + '"' ?: '"Twitter Login won\'t work. Please use the apk from the apk branch."'
+def STRING = 'String'
+
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
@@ -12,6 +16,10 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        each { type ->
+            type.buildConfigField STRING, 'TwitterApiKey', TWITTER_API_KEY
+            type.buildConfigField STRING, 'TwitterSecretKey', TWITTER_API_SECRET
+        }
     }
     buildTypes {
         release {
@@ -28,12 +36,15 @@ dependencies {
     })
     compile 'com.squareup.retrofit2:retrofit:2.3.0'
     compile 'com.squareup.retrofit2:converter-gson:2.3.0'
-    compile 'com.google.android.gms:play-services-auth:11.0.2'
-    compile 'com.google.firebase:firebase-database:11.0.2'
+    compile 'com.google.firebase:firebase-auth:11.0.4'
+    compile 'com.google.android.gms:play-services-auth:11.0.4'
+    compile 'com.twitter.sdk.android:twitter-core:3.1.1'
+    compile 'com.google.firebase:firebase-database:11.0.4'
     compile 'com.heinrichreimersoftware:material-singleinputform:3.0.3'
     compile 'com.getbase:floatingactionbutton:1.10.1'
     compile 'de.hdodenhof:circleimageview:2.1.0'
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:design:25.3.1'
     compile 'com.jakewharton:butterknife:8.6.0'
