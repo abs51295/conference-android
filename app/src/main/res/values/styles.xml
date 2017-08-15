@@ -9,14 +9,26 @@
         <item name="android:windowBackground">@color/colorBackground</item>
     </style>
 
+    <style name="ActivityTheme" parent="AppTheme">
+        <item name="android:actionBarStyle">@style/ActionBarStyle</item>
+    </style>
+
+    <style name="ActionBarStyle" parent="Widget.AppCompat.Light.ActionBar.Solid">
+        <item name="android:titleTextStyle">@style/ActionBarTitleTextAppearance</item>
+    </style>
+
+    <style name="ActionBarTitleTextAppearance" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="fontPath">fonts/tahoma-bold.ttf</item>
+    </style>
+
+    <style name="ToolbarTitleTextAppearance" parent="android:TextAppearance">
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
     <style name="ToolbarTheme" parent="@style/ThemeOverlay.AppCompat.ActionBar">
         <item name="colorControlNormal">@android:color/black</item>
         <item name="titleTextColor">@android:color/black</item>
-    </style>
-
-    <style name="AppTheme.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
     </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
@@ -27,8 +39,17 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:paddingBottom">8dp</item>
-        <item name="android:textSize">20sp</item>
-        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:textSize">@dimen/text_size_header</item>
+        <item name="android:textColor">@color/header_color</item>
+        <item name="fontPath">fonts/calibri-bold.ttf</item>
+    </style>
+
+    <style name="Body" parent="Base.TextAppearance.AppCompat.Body1">
+        <item name="android:textSize">@dimen/text_size_normal</item>
+    </style>
+
+    <style name="HeadLine" parent="TextAppearance.AppCompat.Headline">
+        <item name="android:textSize">@dimen/text_size_headline</item>
     </style>
 
     <style name="SeparatorLine">
@@ -38,6 +59,7 @@
     </style>
 
     <style name="Metadata" parent="TextAppearance.AppCompat.Subhead">
+        <item name="android:textSize">@dimen/text_size_medium</item>
         <item name="android:textColor">@android:color/black</item>
         <item name="android:gravity">center_vertical</item>
         <item name="android:drawablePadding">8dp</item>

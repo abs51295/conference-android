@@ -23,6 +23,9 @@
     <dimen name="fb_button_margin">30dp</dimen>
     <dimen name="item_image_view_extra_large">250dp</dimen>
     <dimen name="speaker_details_margin">32dp</dimen>
-    <dimen name="text_size_header">20sp</dimen>
-    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_headline">26sp</dimen>
+    <dimen name="text_size_header">22sp</dimen>
+    <dimen name="text_size_large">20sp</dimen>
+    <dimen name="text_size_medium">18sp</dimen>
+    <dimen name="text_size_normal">16sp</dimen>
 </resources>

@@ -3,6 +3,8 @@ package com.systers.conference;
 import android.app.Application;
 import android.content.Context;
 
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
+
 import com.facebook.stetho.Stetho;
 import com.uphyca.stetho_realm.RealmInspectorModulesProvider;
 import io.realm.Realm;
@@ -19,6 +21,11 @@ public class ConferenceApplication extends Application {
     public void onCreate() {
         super.onCreate();
         appContext = this;
+        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
+                .setDefaultFontPath("fonts/calibri.ttf")
+                .setFontAttrId(R.attr.fontPath)
+                .build()
+        );
         Realm.init(this);
         RealmConfiguration configuration = new RealmConfiguration.Builder()
                 .deleteRealmIfMigrationNeeded()

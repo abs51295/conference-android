@@ -1,6 +1,7 @@
 package com.systers.conference.register;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -22,6 +23,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class PreRegistrationActivity extends AppCompatActivity implements ListResponseCallback<Question> {
 
@@ -48,6 +50,11 @@ public class PreRegistrationActivity extends AppCompatActivity implements ListRe
         AccountUtils.setRegistrationPreference(this, "no");
         startActivity(new Intent(this, MainActivity.class));
         ActivityCompat.finishAffinity(this);
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
     @Override

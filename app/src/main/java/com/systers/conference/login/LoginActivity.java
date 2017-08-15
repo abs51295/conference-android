@@ -1,5 +1,6 @@
 package com.systers.conference.login;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -35,6 +36,7 @@ import java.util.Arrays;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 
 /**
@@ -135,6 +137,11 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         parameters.putString("fields", "id,first_name,last_name,email,work,picture.type(large)");
         request.setParameters(parameters);
         request.executeAsync();
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
     private void startRegisterActivity() {

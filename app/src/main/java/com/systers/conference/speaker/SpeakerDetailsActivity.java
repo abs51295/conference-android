@@ -1,5 +1,6 @@
 package com.systers.conference.speaker;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.net.Uri;
@@ -22,10 +23,10 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.systers.conference.R;
 import com.systers.conference.model.Speaker;
-import com.systers.conference.util.APIUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarLayout.OnOffsetChangedListener {
 
@@ -65,8 +66,13 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
         setUpViews();
     }
 
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    }
+
     private void setUpViews() {
-        String imageUrl = "https://www.eiseverywhere.com/image.php?acc=" + APIUtils.ACCOUNT_ID + "&id=" + speaker.getImageId();
+        String imageUrl = "https://ghc.anitaborg.org/wp-content/uploads/sites/2/2016/07/marc-benioff-700x467.jpg";
         Picasso.with(this)
                 .load(Uri.parse(imageUrl))
                 .error(R.drawable.male_icon_9_glasses)

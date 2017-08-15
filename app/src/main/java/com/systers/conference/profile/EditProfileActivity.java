@@ -68,6 +68,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import de.hdodenhof.circleimageview.CircleImageView;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class EditProfileActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
@@ -138,6 +139,11 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
             //Getting only profile since we have already registered the user and want only ID to determine the state.
             LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
         }
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
     @OnClick(R.id.edit_icon)

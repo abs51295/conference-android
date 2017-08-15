@@ -8,4 +8,5 @@
     <color name="button_background">#efefef</color>
     <color name="google_plus_color">#dd4b39</color>
     <color name="facebook_color">#3b5998</color>
+    <color name="header_color">#54BCEB</color>
 </resources>
