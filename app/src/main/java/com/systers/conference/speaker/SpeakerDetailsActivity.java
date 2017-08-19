@@ -1,6 +1,5 @@
 package com.systers.conference.speaker;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.net.Uri;
@@ -8,7 +7,6 @@ import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
@@ -21,14 +19,14 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import com.systers.conference.BaseActivity;
 import com.systers.conference.R;
 import com.systers.conference.model.Speaker;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
-public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarLayout.OnOffsetChangedListener {
+public class SpeakerDetailsActivity extends BaseActivity implements AppBarLayout.OnOffsetChangedListener {
 
     @BindView(R.id.toolbar_speaker_details)
     Toolbar toolbar;
@@ -66,11 +64,6 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
         setUpViews();
     }
 
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
-    }
-
     private void setUpViews() {
         String imageUrl = "https://ghc.anitaborg.org/wp-content/uploads/sites/2/2016/07/marc-benioff-700x467.jpg";
         Picasso.with(this)
@@ -87,9 +80,9 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
                         progressBar.setVisibility(View.GONE);
                     }
                 });
-        title.setText(speaker.getFirstName() + " " + speaker.getLastName());
-        designation.setText(speaker.getTitle() + ", " + speaker.getCompany());
-        description.setText(speaker.getBio());
+        title.setText(speaker.getName());
+        designation.setText(speaker.getRole() + ", " + speaker.getCompany());
+        description.setText(speaker.getDescription());
     }
 
     @Override
@@ -97,9 +90,9 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
         int maxScroll = appBarLayout.getTotalScrollRange();
         float percentage = (float) Math.abs(verticalOffset) / (float) maxScroll;
         if (percentage == 1f && isHideToolbarView) {
-            if (TextUtils.isEmpty(speaker.getTitle()) && TextUtils.isEmpty(speaker.getCompany())) {
+            if (TextUtils.isEmpty(speaker.getRole()) && TextUtils.isEmpty(speaker.getCompany())) {
                 header.setVisibility(View.GONE);
-                collapsingToolbarLayout.setTitle(speaker.getFirstName() + " " + speaker.getLastName());
+                collapsingToolbarLayout.setTitle(speaker.getName());
                 isHideToolbarView = !isHideToolbarView;
             } else {
                 header.setVisibility(View.VISIBLE);

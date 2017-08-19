@@ -1,13 +1,11 @@
 package com.systers.conference.event;
 
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.support.v4.app.ShareCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -36,7 +34,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.realm.ObjectChangeSet;
 import io.realm.OrderedCollectionChangeSet;
@@ -87,11 +84,6 @@ public class EventDetailActivity extends BaseActivity {
         } catch (ActivityNotFoundException e) {
             Toast.makeText(this, R.string.calendar_not_found, Toast.LENGTH_LONG).show();
         }
-    }
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
     @OnClick(R.id.share_fab)
