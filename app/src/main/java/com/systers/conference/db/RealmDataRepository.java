@@ -73,7 +73,7 @@ public class RealmDataRepository {
                 if (speakers != null && !speakers.isEmpty()) {
                     RealmList<Speaker> newSpeakers = new RealmList<>();
                     for (Speaker speaker : speakers) {
-                        Speaker stored = bgRealm.where(Speaker.class).equalTo("name", speaker.getName()).findFirst();
+                        Speaker stored = bgRealm.where(Speaker.class).equalTo("id", speaker.getId()).findFirst();
                         if (stored != null) {
                             newSpeakers.add(stored);
                         } else {
@@ -87,7 +87,7 @@ public class RealmDataRepository {
                 if (tracks != null && !tracks.isEmpty()) {
                     RealmList<Track> newTracks = new RealmList<>();
                     for (Track track : tracks) {
-                        Track stored = bgRealm.where(Track.class).equalTo("name", track.getName()).findFirst();
+                        Track stored = bgRealm.where(Track.class).equalTo("id", track.getId()).findFirst();
                         if (stored != null) {
                             newTracks.add(stored);
                         } else {
@@ -97,7 +97,8 @@ public class RealmDataRepository {
                     session.setTracks(newTracks);
                 }
                 session.setId(sessionId);
-                bgRealm.copyToRealmOrUpdate(session);
+                bgRealm.insertOrUpdate(session);
+                LogUtils.LOGE(LOG_TAG, "Session update called");
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override
@@ -177,7 +178,7 @@ public class RealmDataRepository {
             @Override
             public void execute(Realm bgRealm) {
                 track.setId(trackId);
-                bgRealm.copyToRealmOrUpdate(track);
+                bgRealm.insertOrUpdate(track);
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override
@@ -226,7 +227,7 @@ public class RealmDataRepository {
             @Override
             public void execute(Realm bgRealm) {
                 speaker.setId(speakerId);
-                bgRealm.copyToRealmOrUpdate(speaker);
+                bgRealm.insertOrUpdate(speaker);
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override
@@ -263,6 +264,10 @@ public class RealmDataRepository {
         });
     }
 
+    public Speaker getSpeakerFromRealm(final String speakerId) {
+        return mRealm.where(Speaker.class).equalTo("id", speakerId).findFirstAsync();
+    }
+
     public void saveEventInRealm(final String eventId, final Event event) {
         Event storedEvent = mRealm.where(Event.class).equalTo("id", eventId).findFirst();
         if (storedEvent == null) {
@@ -275,7 +280,7 @@ public class RealmDataRepository {
             @Override
             public void execute(Realm bgRealm) {
                 event.setId(eventId);
-                bgRealm.copyToRealmOrUpdate(event);
+                bgRealm.insertOrUpdate(event);
             }
         }, new Realm.Transaction.OnSuccess() {
             @Override

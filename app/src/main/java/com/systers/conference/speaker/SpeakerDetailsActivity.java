@@ -16,16 +16,17 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.systers.conference.R;
+import com.systers.conference.db.RealmDataRepository;
 import com.systers.conference.model.Speaker;
-import com.systers.conference.util.APIUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.realm.ObjectChangeSet;
+import io.realm.RealmModel;
+import io.realm.RealmObjectChangeListener;
 
 public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarLayout.OnOffsetChangedListener {
 
@@ -47,8 +48,9 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
     AppBarLayout appBarLayout;
     @BindView(R.id.progress_bar)
     ProgressBar progressBar;
-    private Speaker speaker;
+    private Speaker mSpeaker;
     private boolean isHideToolbarView = false;
+    private RealmDataRepository mRealmRepo = RealmDataRepository.getDefaultInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,19 +58,23 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
         setContentView(R.layout.activity_speaker_details);
         ButterKnife.bind(this);
         Intent intent = getIntent();
-        speaker = new Gson().fromJson(intent.getStringExtra(getString(R.string.speaker_data)), new TypeToken<Speaker>() {
-        }.getType());
+        String speakerId = intent.getStringExtra(getString(R.string.speaker_data));
+        mSpeaker = mRealmRepo.getSpeakerFromRealm(speakerId);
+        mSpeaker.addChangeListener(new RealmObjectChangeListener<RealmModel>() {
+            @Override
+            public void onChange(RealmModel realmModel, ObjectChangeSet changeSet) {
+                setUpViews();
+            }
+        });
         progressBar.getIndeterminateDrawable().setColorFilter(ContextCompat.getColor(this, R.color.material_black_54), PorterDuff.Mode.SRC_IN);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         appBarLayout.addOnOffsetChangedListener(this);
-        setUpViews();
     }
 
     private void setUpViews() {
-        String imageUrl = "https://www.eiseverywhere.com/image.php?acc=" + APIUtils.ACCOUNT_ID + "&id=" + speaker.getImageId();
         Picasso.with(this)
-                .load(Uri.parse(imageUrl))
+                .load(Uri.parse(mSpeaker.getAvatarUrl()))
                 .error(R.drawable.male_icon_9_glasses)
                 .into(image, new Callback() {
                     @Override
@@ -81,9 +87,9 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
                         progressBar.setVisibility(View.GONE);
                     }
                 });
-        title.setText(speaker.getFirstName() + " " + speaker.getLastName());
-        designation.setText(speaker.getTitle() + ", " + speaker.getCompany());
-        description.setText(speaker.getBio());
+        title.setText(mSpeaker.getName());
+        designation.setText(mSpeaker.getRole() + ", " + mSpeaker.getCompany());
+        description.setText(mSpeaker.getDescription());
     }
 
     @Override
@@ -91,9 +97,9 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
         int maxScroll = appBarLayout.getTotalScrollRange();
         float percentage = (float) Math.abs(verticalOffset) / (float) maxScroll;
         if (percentage == 1f && isHideToolbarView) {
-            if (TextUtils.isEmpty(speaker.getTitle()) && TextUtils.isEmpty(speaker.getCompany())) {
+            if (TextUtils.isEmpty(mSpeaker.getRole()) && TextUtils.isEmpty(mSpeaker.getCompany())) {
                 header.setVisibility(View.GONE);
-                collapsingToolbarLayout.setTitle(speaker.getFirstName() + " " + speaker.getLastName());
+                collapsingToolbarLayout.setTitle(mSpeaker.getName());
                 isHideToolbarView = !isHideToolbarView;
             } else {
                 header.setVisibility(View.VISIBLE);

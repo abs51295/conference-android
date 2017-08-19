@@ -31,6 +31,7 @@ public class AccountUtils {
     private static final String PREFIX_PREF_REGISTER = "register_";
     private static final String PREFIX_PREF_LOGIN = "login_";
     private static final String PREFIX_PREF_PRE_REG = "pre_reg_";
+    private static final String PREFIX_PREF_CURR_SESSION = "curr_session";
 
     private static SharedPreferences getSharedPreferences(final Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context);
@@ -149,7 +150,7 @@ public class AccountUtils {
         SharedPreferences preferences = getSharedPreferences(context);
         return preferences.contains(PREFIX_PREF_ROLE) ? preferences.getString(PREFIX_PREF_ROLE, null) : "";
     }
-  
+
     public static void setAccessToken(final Context context, final String accessToken) {
         SharedPreferences preferences = getSharedPreferences(context);
         preferences.edit().putString(PREFIX_PREF_ACCESS_TOKEN, accessToken).apply();
@@ -160,6 +161,7 @@ public class AccountUtils {
         SharedPreferences preferences = getSharedPreferences(context);
         return preferences.contains(PREFIX_PREF_ACCESS_TOKEN) ? preferences.getString(PREFIX_PREF_ACCESS_TOKEN, null) : "";
     }
+
     public static void setRegisterVisited(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
         preferences.edit().putBoolean(PREFIX_PREF_REGISTER, true).apply();
@@ -170,12 +172,12 @@ public class AccountUtils {
         return preferences.contains(PREFIX_PREF_REGISTER);
     }
 
-    public static void setLoginVisited(final Context context){
+    public static void setLoginVisited(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
         preferences.edit().putBoolean(PREFIX_PREF_LOGIN, true).apply();
     }
 
-    public static boolean getLoginVisited(final Context context){
+    public static boolean getLoginVisited(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
         return preferences.contains(PREFIX_PREF_LOGIN);
     }
@@ -188,5 +190,15 @@ public class AccountUtils {
     public static String getRegistrationPreference(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
         return preferences.contains(PREFIX_PREF_PRE_REG) ? preferences.getString(PREFIX_PREF_PRE_REG, null) : null;
+    }
+
+    public static void setCurrentSession(final Context context, String value) {
+        SharedPreferences preferences = getSharedPreferences(context);
+        preferences.edit().putString(PREFIX_PREF_CURR_SESSION, value).apply();
+    }
+
+    public static String getCurrentSession(final Context context) {
+        SharedPreferences preferences = getSharedPreferences(context);
+        return preferences.contains(PREFIX_PREF_CURR_SESSION) ? preferences.getString(PREFIX_PREF_CURR_SESSION, null) : null;
     }
 }

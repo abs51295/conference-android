@@ -24,8 +24,10 @@ import com.systers.conference.R;
 import com.systers.conference.db.RealmDataRepository;
 import com.systers.conference.model.Session;
 import com.systers.conference.model.Speaker;
-import com.systers.conference.schedule.DayWiseScheduleViewHolder;
+import com.systers.conference.speaker.SpeakerDetailsActivity;
+import com.systers.conference.util.AccountUtils;
 import com.systers.conference.util.DateTimeUtil;
+import com.systers.conference.util.LogUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,6 +46,7 @@ import io.realm.RealmObjectChangeListener;
 
 public class EventDetailActivity extends BaseActivity {
 
+    private static final String LOG_TAG = LogUtils.makeLogTag(EventDetailActivity.class);
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
     @BindView(R.id.event_title)
@@ -105,32 +108,36 @@ public class EventDetailActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LogUtils.LOGE(LOG_TAG, "On Create");
         setContentView(R.layout.activity_event_detail);
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        setDrawables();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        setDrawables();
-        mSession = mRealmRepo.getSessionById(getIntent().getStringExtra(DayWiseScheduleViewHolder.SESSION_ID));
-        updateSession();
-        updateSpeakers();
-        mSession.addChangeListener(new RealmObjectChangeListener<RealmModel>() {
-            @Override
-            public void onChange(RealmModel realmModel, ObjectChangeSet changeSet) {
-                updateSession();
-            }
-        });
-        mRealmSpeakers = mSession.getSpeakers();
-        mRealmSpeakers.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Speaker>>() {
-            @Override
-            public void onChange(RealmList<Speaker> speakers, OrderedCollectionChangeSet changeSet) {
-                updateSpeakers();
-            }
-        });
+        String sessionId = AccountUtils.getCurrentSession(this);
+        if (sessionId != null) {
+            mSession = mRealmRepo.getSessionById(sessionId);
+            updateSession();
+            mRealmSpeakers = mSession.getSpeakers();
+            updateSpeakers(mRealmSpeakers);
+            mRealmSpeakers.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Speaker>>() {
+                @Override
+                public void onChange(RealmList<Speaker> speakers, OrderedCollectionChangeSet changeSet) {
+                    updateSpeakers(speakers);
+                }
+            });
+            mSession.addChangeListener(new RealmObjectChangeListener<RealmModel>() {
+                @Override
+                public void onChange(RealmModel realmModel, ObjectChangeSet changeSet) {
+                    updateSession();
+                }
+            });
+        }
     }
 
     private Intent getShareChooserIntent() {
@@ -179,14 +186,14 @@ public class EventDetailActivity extends BaseActivity {
         }
     }
 
-    private void updateSpeakers() {
+    private void updateSpeakers(RealmList<Speaker> speakers) {
         mSpeakers.removeAllViews();
         mSpeakerList.clear();
-        mSpeakerList.addAll(mSession.getSpeakers());
+        mSpeakerList.addAll(speakers);
         if (mSpeakerList != null && mSpeakerList.size() > 0) {
             mSpeakerListHeader.setVisibility(View.VISIBLE);
             mSpeakers.setVisibility(View.VISIBLE);
-            for (Speaker speaker : mSpeakerList) {
+            for (final Speaker speaker : mSpeakerList) {
                 View view = LayoutInflater.from(this).inflate(R.layout.speaker_list_item, mSpeakers, false);
                 CircleImageView avatar = (CircleImageView) view.findViewById(R.id.speaker_avatar_icon);
                 if (!TextUtils.isEmpty(speaker.getAvatarUrl())) {
@@ -201,6 +208,14 @@ public class EventDetailActivity extends BaseActivity {
                 speakerName.setText(speaker.getName());
                 TextView speakerRole = (TextView) view.findViewById(R.id.speaker_role);
                 speakerRole.setText(speaker.getRole() + ", " + speaker.getCompany());
+                view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(EventDetailActivity.this, SpeakerDetailsActivity.class);
+                        intent.putExtra(getString(R.string.speaker_data), speaker.getId());
+                        startActivity(intent);
+                    }
+                });
                 mSpeakers.addView(view);
             }
         } else {
@@ -230,8 +245,8 @@ public class EventDetailActivity extends BaseActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         mSession.removeAllChangeListeners();
         mRealmSpeakers.removeAllChangeListeners();
     }
