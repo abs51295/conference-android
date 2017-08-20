@@ -1,0 +1,22 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.systers.conference.maps.MapFragment">
+
+    <com.systers.conference.widgets.viewpager.VerticalViewPager
+        android:id="@+id/map_view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.systers.conference.widgets.viewpager.CircleViewPagerIndicator
+        android:id="@+id/map_circle_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        app:ci_drawable="@drawable/ic_accent_radius"
+        app:ci_gravity="start|clip_horizontal"
+        app:ci_orientation="vertical" />
+
+</FrameLayout>
