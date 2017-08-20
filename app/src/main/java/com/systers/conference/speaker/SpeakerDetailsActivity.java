@@ -67,7 +67,7 @@ public class SpeakerDetailsActivity extends BaseActivity implements AppBarLayout
     private void setUpViews() {
         String imageUrl = "https://ghc.anitaborg.org/wp-content/uploads/sites/2/2016/07/marc-benioff-700x467.jpg";
         Picasso.with(this)
-                .load(Uri.parse(imageUrl))
+                .load(Uri.parse(speaker.getAvatarUrl()))
                 .error(R.drawable.male_icon_9_glasses)
                 .into(image, new Callback() {
                     @Override

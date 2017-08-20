@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.systers.conference.maps.MapFragment;
 import com.systers.conference.profile.ProfileFragment;
 import com.systers.conference.schedule.ScheduleFragment;
 import com.systers.conference.util.LogUtils;
@@ -169,6 +170,10 @@ public class MainActivity extends BaseActivity {
                     mNavigationView.getMenu().findItem(itemId).setChecked(true);
                     updateUI(Section.MYSCHEDULE);
                     break;
+                case R.id.nav_slideshow:
+                    mNavigationView.getMenu().findItem(itemId).setChecked(true);
+                    updateUI(Section.MAP);
+                    break;
                 case R.id.imageView:
                     updateUI(Section.PROFILE);
                     break;
@@ -184,6 +189,9 @@ public class MainActivity extends BaseActivity {
             case R.id.nav_gallery:
                 mCurrentSection = Section.MYSCHEDULE;
                 break;
+            case R.id.nav_slideshow:
+                mCurrentSection = Section.MAP;
+                break;
             case R.id.imageView:
                 mCurrentSection = Section.PROFILE;
                 break;
@@ -194,10 +202,10 @@ public class MainActivity extends BaseActivity {
         setTitle(mCurrentSection.getTitleResId());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             StateListAnimator stateListAnimator = new StateListAnimator();
-            if (mCurrentSection.extendsAppBar()) {
-                stateListAnimator.addState(new int[0], ObjectAnimator.ofFloat(mAppBar, "elevation", 0));
-            } else {
+            if (!mCurrentSection.hasSlidingTabs()) {
                 stateListAnimator.addState(new int[0], ObjectAnimator.ofFloat(mAppBar, "elevation", getResources().getDimension(R.dimen.toolbar_elevation)));
+            } else {
+                stateListAnimator.addState(new int[0], ObjectAnimator.ofFloat(mAppBar, "elevation", 0));
             }
             mAppBar.setStateListAnimator(stateListAnimator);
         }
@@ -227,20 +235,21 @@ public class MainActivity extends BaseActivity {
     }
 
     private enum Section {
+        MAP(MapFragment.class, R.string.title_map_fragment, false, false),
         MYSCHEDULE(ScheduleFragment.class, R.string.myschedule_title, true, true),
         SCHEDULE(ScheduleFragment.class, R.string.schedule_title, true, true),
         PROFILE(ProfileFragment.class, R.string.profile_title, false, false);
 
         private final String fragmentClassName;
         private final int titleResId;
-        private final boolean extendsAppBar;
+        private final boolean hasSlidingTabs;
         private final boolean keep;
 
         Section(Class<? extends Fragment> fragmentClass, int titleResId,
-                boolean extendsAppBar, boolean keep) {
+                boolean hasSlidingTabs, boolean keep) {
             this.fragmentClassName = fragmentClass.getName();
             this.titleResId = titleResId;
-            this.extendsAppBar = extendsAppBar;
+            this.hasSlidingTabs = hasSlidingTabs;
             this.keep = keep;
         }
 
@@ -253,8 +262,8 @@ public class MainActivity extends BaseActivity {
             return titleResId;
         }
 
-        public boolean extendsAppBar() {
-            return extendsAppBar;
+        public boolean hasSlidingTabs() {
+            return hasSlidingTabs;
         }
 
         public boolean shouldKeep() {
