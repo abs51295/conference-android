@@ -37,7 +37,6 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.realm.Realm;
 
 
 /**
@@ -70,7 +69,6 @@ public class RegisterActivity extends BaseActivity {
     private RealmDataRepository mRealmRepo = RealmDataRepository.getDefaultInstance();
     private String mAttendeeType;
     private ProgressDialog mProgressDialog;
-    private Realm realm;
 
     @OnClick(R.id.register_button)
     public void register() {
@@ -89,8 +87,7 @@ public class RegisterActivity extends BaseActivity {
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
         mProgressDialog = new ProgressDialog(this);
-        realm = Realm.getDefaultInstance();
-        mAttendee = mRealmRepo.getAttendeeFromRealm(firebaseUid);
+        mAttendee = mRealmRepo.getAttendeeCopyFromRealmSync(firebaseUid);
         mFirstName.setText(mAttendee.getFirstName());
         mLastName.setText(mAttendee.getLastName());
         mEmail.setText(mAttendee.getEmail());
@@ -140,7 +137,7 @@ public class RegisterActivity extends BaseActivity {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
-                        storeDataInRealm();
+                        storeDataInRealm(true);
                     } else {
                         hideProgressDialog();
                         LogUtils.LOGE(LOG_TAG, task.getException().getMessage());
@@ -151,32 +148,31 @@ public class RegisterActivity extends BaseActivity {
                 }
             });
         } else {
-            storeDataInRealm();
+            storeDataInRealm(true);
         }
     }
 
-    private void storeDataInRealm() {
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                mAttendee.setFirstName(mFirstName.getText().toString());
-                mAttendee.setLastName(mLastName.getText().toString());
-                mAttendee.setEmail(mEmail.getText().toString());
-                mAttendee.setAttendeeType(mAttendeeType);
-                if (!TextUtils.isEmpty(mCompany.getText().toString())) {
-                    mAttendee.setCompany(mCompany.getText().toString());
-                }
-                if (!TextUtils.isEmpty(mRole.getText().toString())) {
-                    mAttendee.setTitle(mRole.getText().toString());
-                }
-            }
-        });
-        saveAttendeeInFirebase();
+    private void storeDataInRealm(boolean isRegistered) {
+        mAttendee.setFirstName(mFirstName.getText().toString());
+        mAttendee.setLastName(mLastName.getText().toString());
+        mAttendee.setEmail(mEmail.getText().toString());
+        mAttendee.setAttendeeType(mAttendeeType);
+        if (!TextUtils.isEmpty(mCompany.getText().toString())) {
+            mAttendee.setCompany(mCompany.getText().toString());
+        }
+        if (!TextUtils.isEmpty(mRole.getText().toString())) {
+            mAttendee.setTitle(mRole.getText().toString());
+        }
+        mAttendee.setRegistered(isRegistered);
+        mRealmRepo.updateAttendeeInRealmSync(mAttendee);
+        if (isRegistered) {
+            saveAttendeeInFirebase();
+        }
     }
 
     private void saveAttendeeInFirebase() {
         Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        String attendeeJson = gson.toJson(realm.copyFromRealm(mAttendee));
+        String attendeeJson = gson.toJson(mAttendee);
         DatabaseReference mFireBaseDatabaseRef = FirebaseDatabaseUtil.getDatabase().getReference().child("Users").child(firebaseUid);
         Map<String, Object> jsonMap = gson.fromJson(attendeeJson, new TypeToken<HashMap<String, Object>>() {
         }.getType());
@@ -213,6 +209,7 @@ public class RegisterActivity extends BaseActivity {
         int id = item.getItemId();
         if (id == R.id.action_skip) {
             AccountUtils.setRegisterVisited(this);
+            storeDataInRealm(false);
             startActivity(new Intent(this, MainActivity.class));
             finish();
             return true;
@@ -222,12 +219,6 @@ public class RegisterActivity extends BaseActivity {
 
     private void hideProgressDialog() {
         mProgressDialog.dismiss();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        realm.close();
     }
 }
 

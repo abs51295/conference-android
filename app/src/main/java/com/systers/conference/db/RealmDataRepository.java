@@ -341,7 +341,22 @@ public class RealmDataRepository {
         });
     }
 
-    public Attendee getAttendeeFromRealm(final String attendeeId) {
+    public void updateAttendeeInRealmSync(final Attendee attendee) {
+        LogUtils.LOGE(LOG_TAG, "Attendee updated");
+        mRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.insertOrUpdate(attendee);
+            }
+        });
+    }
+
+    public Attendee getAttendeeCopyFromRealmSync(final String attendeeId) {
+        Attendee attendee = mRealm.where(Attendee.class).equalTo("uid", attendeeId).findFirst();
+        return mRealm.copyFromRealm(attendee);
+    }
+
+    public Attendee getAttendeeFromRealmSync(final String attendeeId) {
         return mRealm.where(Attendee.class).equalTo("uid", attendeeId).findFirst();
     }
 }

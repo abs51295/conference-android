@@ -2,6 +2,7 @@ package com.systers.conference.profile;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -29,40 +30,46 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
-import com.facebook.HttpMethod;
-import com.facebook.Profile;
-import com.facebook.ProfileTracker;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DatabaseReference;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.mvc.imagepicker.ImagePicker;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import com.systers.conference.ConferenceApplication;
 import com.systers.conference.MainActivity;
 import com.systers.conference.R;
-import com.systers.conference.util.AccountUtils;
+import com.systers.conference.db.RealmDataRepository;
+import com.systers.conference.model.Attendee;
+import com.systers.conference.util.FirebaseAuthUtil;
+import com.systers.conference.util.FirebaseDatabaseUtil;
 import com.systers.conference.util.LogUtils;
 import com.systers.conference.util.PermissionsUtil;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterCore;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -87,12 +94,14 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
     EditText mLastName;
     @BindView(R.id.edit_email)
     EditText mEmail;
+    @BindView(R.id.attendeeType)
+    EditText mAttendeeType;
     @BindView(R.id.edit_company_name)
     EditText mCompanyName;
     @BindView(R.id.edit_role)
     EditText mRole;
-    @BindView(R.id.facebook_button)
-    Button mFacebookButton;
+    @BindView(R.id.twitter_button)
+    Button mTwitterButton;
     @BindView(R.id.google_button)
     Button mGoogleButton;
     @BindView(R.id.toolbar)
@@ -103,9 +112,13 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
     TextInputLayout mTextLastName;
     private GoogleApiClient mGoogleApiClient;
     private boolean mIsGoogleConnected;
-    private boolean mIsFacebookConnected;
+    private boolean mIsTwitterConnected;
     private boolean mIsAvatarPresent;
-    private CallbackManager mCallbackManager;
+    private Attendee mAttendee;
+    private RealmDataRepository mRealmRepo = RealmDataRepository.getDefaultInstance();
+    private TwitterAuthClient mTwitterAuthClient;
+    private ProgressDialog mProgressDialog;
+    private Intent intent;
 
     @OnClick(R.id.google_button)
     public void googleSignInOrSignOut() {
@@ -124,19 +137,32 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
         }
     }
 
-    @OnClick(R.id.facebook_button)
-    public void FbSignInOrSignOut() {
-        if (mIsFacebookConnected) {
+    @OnClick(R.id.twitter_button)
+    public void twitterSignInOrSignOut() {
+        if (mIsTwitterConnected) {
             DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    revokeFacebookAccess();
+                    revokeTwitterAccess();
                 }
             };
             createDialog(positiveListener);
         } else {
-            //Getting only profile since we have already registered the user and want only ID to determine the state.
-            LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
+            mTwitterAuthClient.authorize(this, new Callback<TwitterSession>() {
+
+                @Override
+                public void success(Result<TwitterSession> result) {
+                    mIsTwitterConnected = true;
+                    mAttendee.setTwitterLoggedIn(true);
+                    updateTwitterButton();
+                }
+
+                @Override
+                public void failure(TwitterException exception) {
+                    Snackbar.make(mLayout, getString(R.string.sign_in_cancelled), Snackbar.LENGTH_LONG).show();
+                    LogUtils.LOGE(LOG_TAG, exception.getMessage());
+                }
+            });
         }
     }
 
@@ -155,7 +181,7 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
                     } else if (items[which].equals(getString(R.string.delete_avatar))) {
                         dialog.dismiss();
                         deleteOldAvatar();
-                        AccountUtils.setProfilePictureUrl(EditProfileActivity.this, null);
+                        mAttendee.setAvatarUrl(null);
                         updateAvatar();
                     }
                 }
@@ -175,56 +201,29 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
         setContentView(R.layout.activity_edit_profile);
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
-        mFirstName.setText(AccountUtils.getFirstName(this));
-        mLastName.setText(AccountUtils.getLastName(this));
-        mEmail.setText(AccountUtils.getEmail(this));
-        mCompanyName.setText(AccountUtils.getCompanyName(this));
-        mRole.setText(AccountUtils.getCompanyRole(this));
+        mAttendee = mRealmRepo.getAttendeeCopyFromRealmSync(FirebaseAuthUtil.getFirebaseAuthInstance().getCurrentUser().getUid());
+        mFirstName.setText(mAttendee.getFirstName());
+        mLastName.setText(mAttendee.getLastName());
+        mEmail.setText(mAttendee.getEmail());
+        mAttendeeType.setText(mAttendee.getAttendeeType());
+        mCompanyName.setText(mAttendee.getCompany());
+        mRole.setText(mAttendee.getTitle());
+        mProgressDialog = new ProgressDialog(this);
         updateAvatar();
-        mIsGoogleConnected = AccountUtils.hasActiveGoogleAccount(this);
+        mIsGoogleConnected = mAttendee.isGoogleLoggedIn();
         updateGoogleButton();
-        mIsFacebookConnected = AccountUtils.hasActiveFacebookAccount(this);
-        updateFacebookButton();
+        mIsTwitterConnected = mAttendee.isTwitterLoggedIn();
+        updateTwitterButton();
         GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail()
                 .build();
         mGoogleApiClient = new GoogleApiClient.Builder(this).enableAutoManage(this, this).addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions)
                 .build();
-        mCallbackManager = CallbackManager.Factory.create();
-        LoginManager.getInstance().registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
-            private ProfileTracker mProfileTracker;
-
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                if (Profile.getCurrentProfile() == null) {
-                    mProfileTracker = new ProfileTracker() {
-                        @Override
-                        protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
-                            AccountUtils.setActiveFacebookAccount(getApplicationContext(), currentProfile.getId());
-                            mIsFacebookConnected = true;
-                            updateFacebookButton();
-                            mProfileTracker.stopTracking();
-                        }
-                    };
-                } else {
-                    Profile profile = Profile.getCurrentProfile();
-                    AccountUtils.setActiveFacebookAccount(getApplicationContext(), profile.getId());
-                    mIsFacebookConnected = true;
-                    updateFacebookButton();
-                }
-            }
-
-            @Override
-            public void onCancel() {
-                LogUtils.LOGE(LOG_TAG, "Canceled");
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-                LogUtils.LOGE(LOG_TAG, error.toString());
-            }
-        });
+        mTwitterAuthClient = new TwitterAuthClient();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ImagePicker.setMinQuality(getResources().getInteger(R.integer.avatar_dimen), getResources().getInteger(R.integer.avatar_dimen));
+        intent = new Intent(this, MainActivity.class);
+        intent.putExtra(getString(R.string.edit_profile), true);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     }
 
     @Override
@@ -233,9 +232,9 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
     }
 
     private void deleteOldAvatar() {
-        if (AccountUtils.getProfilePictureUrl(this) != null) {
-            if (!Patterns.WEB_URL.matcher(AccountUtils.getProfilePictureUrl(this)).matches()) {
-                Uri uri = Uri.parse(AccountUtils.getProfilePictureUrl(this));
+        if (mAttendee.getAvatarUrl() != null) {
+            if (!Patterns.WEB_URL.matcher(mAttendee.getAvatarUrl()).matches()) {
+                Uri uri = Uri.parse(mAttendee.getAvatarUrl());
                 getContentResolver().delete(uri, null, null);
             }
         }
@@ -244,14 +243,15 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
     private void updateAvatar() {
         Drawable icon = AppCompatResources.getDrawable(this, R.drawable.ic_photo_camera_black_24dp);
         mEditIcon.setIconDrawable(icon);
-        if (AccountUtils.getProfilePictureUrl(this) != null) {
+        if (mAttendee.getAvatarUrl() != null) {
+            LogUtils.LOGE(LOG_TAG, mAttendee.getAvatarUrl());
             Picasso.with(this)
-                    .load(Uri.parse(AccountUtils.getProfilePictureUrl(this)))
+                    .load(Uri.parse(mAttendee.getAvatarUrl()))
                     .resize(getResources().getInteger(R.integer.avatar_dimen), getResources().getInteger(R.integer.avatar_dimen))
                     .centerCrop()
                     .placeholder(R.drawable.male_icon_9_glasses)
                     .error(R.drawable.male_icon_9_glasses)
-                    .into(mAvatar, new Callback() {
+                    .into(mAvatar, new com.squareup.picasso.Callback() {
                         @Override
                         public void onSuccess() {
                             mIsAvatarPresent = true;
@@ -285,32 +285,30 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
         }
     }
 
-    private void updateFacebookButton() {
-        if (mIsFacebookConnected) {
-            mFacebookButton.setBackgroundColor(ContextCompat.getColor(this, R.color.facebook_color));
-            Drawable leftDrawable = AppCompatResources.getDrawable(this, R.drawable.ic_facebook_box_white);
+    private void updateTwitterButton() {
+        if (mIsTwitterConnected) {
+            mTwitterButton.setBackgroundColor(ContextCompat.getColor(this, R.color.twitter_color));
+            Drawable leftDrawable = AppCompatResources.getDrawable(this, R.drawable.ic_twitter_bird_white_24dp);
             Drawable rightDrawable = AppCompatResources.getDrawable(this, R.drawable.ic_check_white_24dp);
-            mFacebookButton.setCompoundDrawablesWithIntrinsicBounds(leftDrawable, null, rightDrawable, null);
-            mFacebookButton.setText(getString(R.string.connected));
-            mFacebookButton.setTextColor(ContextCompat.getColor(this, android.R.color.white));
+            mTwitterButton.setCompoundDrawablesWithIntrinsicBounds(leftDrawable, null, rightDrawable, null);
+            mTwitterButton.setText(getString(R.string.connected));
+            mTwitterButton.setTextColor(ContextCompat.getColor(this, android.R.color.white));
         } else {
-            mFacebookButton.setBackgroundColor(ContextCompat.getColor(this, R.color.button_background));
-            Drawable leftDrawable = AppCompatResources.getDrawable(this, R.drawable.ic_facebook_box);
-            mFacebookButton.setCompoundDrawablesWithIntrinsicBounds(leftDrawable, null, null, null);
-            mFacebookButton.setText(getString(R.string.facebook_button));
-            mFacebookButton.setTextColor(ContextCompat.getColor(this, android.R.color.black));
+            mTwitterButton.setBackgroundColor(ContextCompat.getColor(this, R.color.button_background));
+            Drawable leftDrawable = AppCompatResources.getDrawable(this, R.drawable.ic_twitter_bird_black_24dp);
+            mTwitterButton.setCompoundDrawablesWithIntrinsicBounds(leftDrawable, null, null, null);
+            mTwitterButton.setText(getString(R.string.twitter_button));
+            mTwitterButton.setTextColor(ContextCompat.getColor(this, android.R.color.black));
         }
     }
 
     private void handleGoogleSignInResult(GoogleSignInResult result) {
         if (result.isSuccess()) {
-            GoogleSignInAccount googleSignInAccount = result.getSignInAccount();
-            if (googleSignInAccount.getId() != null) {
-                AccountUtils.setActiveGoogleAccount(this, googleSignInAccount.getId());
-                mIsGoogleConnected = true;
-                updateGoogleButton();
-            }
+            mIsGoogleConnected = true;
+            mAttendee.setGoogleLoggedIn(true);
+            updateGoogleButton();
         } else {
+            Snackbar.make(mLayout, getString(R.string.sign_in_cancelled), Snackbar.LENGTH_LONG).show();
             LogUtils.LOGE(LOG_TAG, "Failed Sign In");
         }
     }
@@ -327,21 +325,24 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
                 }).show();
     }
 
-    private void revokeFacebookAccess() {
-        if (AccessToken.getCurrentAccessToken() == null) {
-            LogUtils.LOGE(LOG_TAG, "Already logged out from FB");
-            return;
+    @SuppressWarnings("deprecation")
+    private void revokeTwitterAccess() {
+        TwitterCore.getInstance().getSessionManager().clearActiveSession();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            CookieManager.getInstance().removeAllCookies(null);
+            CookieManager.getInstance().flush();
+        } else {
+            CookieSyncManager cookieSyncMngr = CookieSyncManager.createInstance(ConferenceApplication.getAppContext());
+            cookieSyncMngr.startSync();
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.removeAllCookie();
+            cookieManager.removeSessionCookie();
+            cookieSyncMngr.stopSync();
+            cookieSyncMngr.sync();
         }
-        new GraphRequest(AccessToken.getCurrentAccessToken(), "/me/permissions/", null, HttpMethod.DELETE, new GraphRequest
-                .Callback() {
-            @Override
-            public void onCompleted(GraphResponse graphResponse) {
-                LoginManager.getInstance().logOut();
-                AccountUtils.clearActiveFacebookAccount(getApplicationContext());
-                mIsFacebookConnected = false;
-                updateFacebookButton();
-            }
-        }).executeAsync();
+        mAttendee.setTwitterLoggedIn(false);
+        mIsTwitterConnected = false;
+        updateTwitterButton();
     }
 
     private void revokeGoogleAccess() {
@@ -350,7 +351,7 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
                     @Override
                     public void onResult(@NonNull Status status) {
                         if (status.isSuccess()) {
-                            AccountUtils.clearActiveGoogleAccount(getApplicationContext());
+                            mAttendee.setGoogleLoggedIn(false);
                             mIsGoogleConnected = false;
                             updateGoogleButton();
                         } else {
@@ -402,10 +403,10 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
                     getString(R.string.image_description)
             );
             deleteOldAvatar();
-            AccountUtils.setProfilePictureUrl(this, selectedImagePath);
+            mAttendee.setAvatarUrl(selectedImagePath);
             updateAvatar();
         } else {
-            mCallbackManager.onActivityResult(requestCode, resultCode, data);
+            mTwitterAuthClient.onActivityResult(requestCode, resultCode, data);
         }
     }
 
@@ -422,16 +423,6 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
         Uri uri = Uri.fromParts("package", getPackageName(), null);
         intent.setData(uri);
         startActivity(intent);
-    }
-
-    private void showSnackBar() {
-        Snackbar.make(mLayout, R.string.permissions_snackbar, Snackbar.LENGTH_LONG)
-                .setAction(getString(R.string.open_settings), new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        openApplicationSettings();
-                    }
-                }).show();
     }
 
     @TargetApi(23)
@@ -471,12 +462,18 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        showSnackBar();
+                        Snackbar.make(mLayout, R.string.permissions_snackbar, Snackbar.LENGTH_LONG)
+                                .setAction(getString(R.string.open_settings), new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        openApplicationSettings();
+                                    }
+                                }).show();
                     }
                 });
                 builder.show();
             } else {
-                mAvatar.performClick();
+                mEditIcon.performClick();
             }
         }
     }
@@ -513,14 +510,13 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
     }
 
     private void saveChanges(boolean isBackPressed) {
-        LogUtils.LOGE(LOG_TAG, mFirstName.getText().toString() + ' ' + AccountUtils.getFirstName(this));
-        final Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(getString(R.string.edit_profile), true);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        boolean dataChanged = !((mFirstName.getText().toString().equals(AccountUtils.getFirstName(this))) &&
-                (mLastName.getText().toString().equals(AccountUtils.getLastName(this))) &&
-                (mCompanyName.getText().toString().equals(AccountUtils.getCompanyName(this))) &&
-                (mRole.getText().toString().equals(AccountUtils.getCompanyRole(this))));
+        boolean dataChanged = false;
+        if (mAttendee.getFirstName() != null && mAttendee.getLastName() != null && mAttendee.getCompany() != null && mAttendee.getTitle() != null) {
+            dataChanged = !((mFirstName.getText().toString().equals(mAttendee.getFirstName())) &&
+                    (mLastName.getText().toString().equals(mAttendee.getLastName())) &&
+                    (mCompanyName.getText().toString().equals(mAttendee.getCompany())) &&
+                    (mRole.getText().toString().equals(mAttendee.getTitle())));
+        }
         if (isBackPressed) {
             if (dataChanged) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -536,29 +532,74 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
                 builder.setNegativeButton("Discard", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        hideKeyboard();
                         dialog.dismiss();
-                        startActivity(intent);
-                        finish();
+                        mRealmRepo.updateAttendeeInRealmSync(mAttendee);
+                        launchMainActivity();
                     }
                 });
                 builder.show();
             } else {
-                hideKeyboard();
-                startActivity(intent);
-                finish();
+                mRealmRepo.updateAttendeeInRealmSync(mAttendee);
+                launchMainActivity();
             }
         } else {
             if (dataChanged) {
-                AccountUtils.setFirstName(this, mFirstName.getText().toString());
-                AccountUtils.setLastName(this, mLastName.getText().toString());
-                AccountUtils.setCompanyName(this, mCompanyName.getText().toString());
-                AccountUtils.setCompanyRole(this, mRole.getText().toString());
-                Toast.makeText(this, getString(R.string.save_toast), Toast.LENGTH_LONG).show();
+                mAttendee.setFirstName(mFirstName.getText().toString());
+                mAttendee.setLastName(mLastName.getText().toString());
+                mAttendee.setCompany(mCompanyName.getText().toString());
+                mAttendee.setTitle(mRole.getText().toString());
+                showProgressDialog();
+                mRealmRepo.updateAttendeeInRealmSync(mAttendee);
+                if (mAttendee.isRegistered()) {
+                    saveAttendeeInFirebase();
+                } else {
+                    Toast.makeText(EditProfileActivity.this, getString(R.string.save_toast), Toast.LENGTH_LONG).show();
+                    launchMainActivity();
+                }
+            } else {
+                mRealmRepo.updateAttendeeInRealmSync(mAttendee);
+                launchMainActivity();
             }
-            hideKeyboard();
-            startActivity(intent);
-            finish();
+        }
+    }
+
+    private void saveAttendeeInFirebase() {
+        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        String attendeeJson = gson.toJson(mAttendee);
+        DatabaseReference mFireBaseDatabaseRef = FirebaseDatabaseUtil.getDatabase().getReference().child("Users").child(FirebaseAuthUtil.getFirebaseAuthInstance().getCurrentUser().getUid());
+        Map<String, Object> jsonMap = gson.fromJson(attendeeJson, new TypeToken<HashMap<String, Object>>() {
+        }.getType());
+        mFireBaseDatabaseRef.updateChildren(jsonMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Toast.makeText(EditProfileActivity.this, getString(R.string.save_toast), Toast.LENGTH_LONG).show();
+                    launchMainActivity();
+                } else {
+                    hideProgressDialog();
+                    LogUtils.LOGE(LOG_TAG, task.getException().getMessage());
+                }
+            }
+        });
+    }
+
+    private void launchMainActivity() {
+        hideProgressDialog();
+        hideKeyboard();
+        startActivity(intent);
+        finish();
+    }
+
+    private void showProgressDialog() {
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage(getString(R.string.progressdialog_message));
+        mProgressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        if (mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
         }
     }
 }

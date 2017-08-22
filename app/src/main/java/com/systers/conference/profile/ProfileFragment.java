@@ -17,7 +17,9 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 import com.systers.conference.R;
-import com.systers.conference.util.AccountUtils;
+import com.systers.conference.db.RealmDataRepository;
+import com.systers.conference.model.Attendee;
+import com.systers.conference.util.FirebaseAuthUtil;
 import com.systers.conference.util.LogUtils;
 
 import butterknife.BindView;
@@ -39,9 +41,10 @@ public class ProfileFragment extends Fragment {
     TextView mConnected;
     @BindView(R.id.google_plus_box)
     ImageView mGooglePlus;
-    @BindView(R.id.facebook_box)
-    ImageView mFacebook;
+    @BindView(R.id.twitter_box)
+    ImageView mTwitter;
     private Unbinder mUnbinder;
+    private RealmDataRepository mRealmRepo = RealmDataRepository.getDefaultInstance();
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -63,9 +66,10 @@ public class ProfileFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
         mUnbinder = ButterKnife.bind(this, view);
-        if (AccountUtils.getProfilePictureUrl(getActivity()) != null) {
-            LogUtils.LOGE(LOG_TAG, AccountUtils.getProfilePictureUrl(getActivity()));
-            Picasso.with(getActivity()).load(Uri.parse(AccountUtils.getProfilePictureUrl(getActivity())))
+        Attendee mAttendee = mRealmRepo.getAttendeeFromRealmSync(FirebaseAuthUtil.getFirebaseAuthInstance().getCurrentUser().getUid());
+        if (mAttendee.getAvatarUrl() != null) {
+            LogUtils.LOGE(LOG_TAG, mAttendee.getAvatarUrl());
+            Picasso.with(getActivity()).load(Uri.parse(mAttendee.getAvatarUrl()))
                     .resize(getResources().getInteger(R.integer.avatar_dimen), getResources().getInteger(R.integer.avatar_dimen))
                     .placeholder(R.drawable.male_icon_9_glasses)
                     .error(R.drawable.male_icon_9_glasses)
@@ -74,37 +78,37 @@ public class ProfileFragment extends Fragment {
         } else {
             mAvatar.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.male_icon_9_glasses));
         }
-        mName.setText(AccountUtils.getFirstName(getActivity()) + " " + AccountUtils.getLastName(getActivity()));
-        if (!TextUtils.isEmpty(AccountUtils.getCompanyRole(getActivity()))) {
-            mSubHead.setText(AccountUtils.getCompanyRole(getActivity()));
+        mName.setText(mAttendee.getFirstName() + " " + mAttendee.getLastName());
+        if (!TextUtils.isEmpty(mAttendee.getTitle())) {
+            mSubHead.setText(mAttendee.getTitle());
         }
-        if (!TextUtils.isEmpty(AccountUtils.getCompanyName(getActivity()))) {
+        if (!TextUtils.isEmpty(mAttendee.getCompany())) {
             String text;
             if (!TextUtils.isEmpty(mSubHead.getText().toString())) {
-                text = mSubHead.getText().toString() + ", " + AccountUtils.getCompanyName(getActivity());
+                text = mSubHead.getText().toString() + ", " + mAttendee.getCompany();
             } else {
-                text = AccountUtils.getCompanyName(getActivity());
+                text = mAttendee.getCompany();
             }
             mSubHead.setText(text);
         }
         if (!TextUtils.isEmpty(mSubHead.getText().toString())) {
             mSubHead.setVisibility(View.VISIBLE);
         }
-        if (AccountUtils.hasActiveGoogleAccount(getActivity()) || AccountUtils.hasActiveFacebookAccount(getActivity())) {
+        if (mAttendee.isGoogleLoggedIn() || mAttendee.isTwitterLoggedIn()) {
             mConnected.setVisibility(View.VISIBLE);
         }
-        if (AccountUtils.hasActiveGoogleAccount(getActivity())) {
+        if (mAttendee.isGoogleLoggedIn()) {
             mGooglePlus.setVisibility(View.VISIBLE);
         }
-        if (AccountUtils.hasActiveFacebookAccount(getActivity())) {
-            mFacebook.setVisibility(View.VISIBLE);
+        if (mAttendee.isTwitterLoggedIn()) {
+            mTwitter.setVisibility(View.VISIBLE);
             if (mGooglePlus.getVisibility() == View.GONE) {
-                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) mFacebook.getLayoutParams();
+                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) mTwitter.getLayoutParams();
                 params.setMargins(0, 0, 0, 0);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                     params.setMarginStart(0);
                 }
-                mFacebook.setLayoutParams(params);
+                mTwitter.setLayoutParams(params);
             }
         }
         return view;

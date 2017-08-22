@@ -125,12 +125,15 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         LogUtils.LOGE(LOG_TAG, connectionResult.getErrorMessage());
     }
 
-    private void startRegisterActivity() {
+    private void launchNextActivity() {
         mFireBaseDatabaseRef.child(mFirebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    mRealmRepo.saveAttendeeInRealmSync(dataSnapshot.getKey(), getAttendeeFromDataSnapshot(dataSnapshot), true, mFirebaseAuth.getCurrentUser().getProviders().get(0));
+                    Attendee snapshotAttendee = getAttendeeFromDataSnapshot(dataSnapshot);
+                    snapshotAttendee.setAvatarUrl(mAttendee.getAvatarUrl());
+                    snapshotAttendee.setRegistered(true);
+                    mRealmRepo.saveAttendeeInRealmSync(dataSnapshot.getKey(), snapshotAttendee, true, mFirebaseAuth.getCurrentUser().getProviders().get(0));
                     hideProgressDialog();
                     AccountUtils.setRegisterVisited(LoginActivity.this);
                     startActivity(new Intent(LoginActivity.this, MainActivity.class));
@@ -156,22 +159,15 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             GoogleSignInAccount account = result.getSignInAccount();
             if (account.getGivenName() != null) {
                 mAttendee.setFirstName(account.getGivenName());
-                AccountUtils.setFirstName(getApplicationContext(), account.getGivenName());
             }
             if (account.getFamilyName() != null) {
                 mAttendee.setLastName(account.getFamilyName());
-                AccountUtils.setLastName(getApplicationContext(), account.getFamilyName());
             }
             if (account.getEmail() != null) {
                 mAttendee.setEmail(account.getEmail());
-                AccountUtils.setEmail(getApplicationContext(), account.getEmail());
-            }
-            if (account.getId() != null) {
-                AccountUtils.setActiveGoogleAccount(getApplicationContext(), account.getId());
             }
             if (account.getPhotoUrl() != null) {
                 mAttendee.setAvatarUrl(account.getPhotoUrl().toString());
-                AccountUtils.setProfilePictureUrl(getApplicationContext(), account.getPhotoUrl().toString());
             }
             firebaseAuthWithGoogle(account);
         } else {
@@ -186,7 +182,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            startRegisterActivity();
+                            launchNextActivity();
                         } else {
                             Snackbar.make(mRootView, getString(R.string.registration_unsuccessful), Snackbar.LENGTH_LONG).show();
                             hideProgressDialog();
@@ -207,18 +203,14 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     User user = response.body();
                     if (!TextUtils.isEmpty(user.email)) {
                         mAttendee.setEmail(user.email);
-                        AccountUtils.setEmail(LoginActivity.this, user.email);
                     }
                     if (!user.defaultProfileImage) {
                         mAttendee.setAvatarUrl(user.profileImageUrlHttps);
-                        AccountUtils.setProfilePictureUrl(LoginActivity.this, user.profileImageUrlHttps);
                     }
                     String[] name = user.name.split("\\s+");
                     try {
                         mAttendee.setFirstName(name[0]);
                         mAttendee.setLastName(name[1]);
-                        AccountUtils.setFirstName(LoginActivity.this, name[0]);
-                        AccountUtils.setLastName(LoginActivity.this, name[1]);
                     } catch (ArrayIndexOutOfBoundsException e) {
                         LogUtils.LOGE(LOG_TAG, "Complete name not set");
                     }
@@ -247,7 +239,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            startRegisterActivity();
+                            launchNextActivity();
                         } else {
                             Snackbar.make(mRootView, getString(R.string.registration_unsuccessful), Snackbar.LENGTH_LONG).show();
                             hideProgressDialog();

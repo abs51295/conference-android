@@ -96,6 +96,22 @@
             android:layout_marginTop="@dimen/list_item_padding">
 
             <EditText
+                android:id="@+id/attendeeType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:hint="@string/prompt_attendee_type"
+                android:inputType="text"
+                android:maxLines="1" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/list_item_padding">
+
+            <EditText
                 android:id="@+id/edit_company_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -120,7 +136,7 @@
         </android.support.design.widget.TextInputLayout>
 
         <Button
-            android:id="@+id/facebook_button"
+            android:id="@+id/twitter_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/button_margin_top"

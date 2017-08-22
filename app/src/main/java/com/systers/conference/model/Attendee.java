@@ -18,9 +18,9 @@ public class Attendee extends RealmObject {
     private String attendeeType;
     private boolean isRegistered;
     @Expose
-    private String company;
+    private String company = "";
     @Expose
-    private String title;
+    private String title = "";
     private String avatarUrl;
     private boolean isGoogleLoggedIn = false;
     private boolean isTwitterLoggedIn = false;

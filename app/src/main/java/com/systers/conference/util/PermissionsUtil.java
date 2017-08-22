@@ -16,7 +16,7 @@ public abstract class PermissionsUtil {
      * @param context    Context returned by getActivity().
      * @return true if permission is granted.
      */
-    public static boolean isPermissionGranted(String permission, Context context) {
+    private static boolean isPermissionGranted(String permission, Context context) {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
     }
 

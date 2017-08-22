@@ -71,7 +71,7 @@
 
     <!-- Strings related to widgets like button, toasts, snackbar -->
     <string name="google_button">Connect with Google</string>
-    <string name="facebook_button">Connect with Facebook</string>
+    <string name="twitter_button">Connect with Twitter</string>
     <string name="connected">Connected</string>
     <string name="dialog_title">Disconnect Account</string>
     <string name="dialog_message">Are you sure you want to disconnect this account?</string>
