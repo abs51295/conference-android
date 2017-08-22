@@ -1,133 +1,233 @@
 package com.systers.conference.register;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.text.InputType;
-import android.util.Patterns;
-import android.view.Gravity;
-import android.widget.Toast;
+import android.support.design.widget.TextInputLayout;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DatabaseReference;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.heinrichreimersoftware.singleinputform.SingleInputFormActivity;
-import com.heinrichreimersoftware.singleinputform.steps.CheckBoxStep;
-import com.heinrichreimersoftware.singleinputform.steps.OptionStep;
-import com.heinrichreimersoftware.singleinputform.steps.Step;
-import com.heinrichreimersoftware.singleinputform.steps.TextStep;
+import com.systers.conference.BaseActivity;
 import com.systers.conference.MainActivity;
 import com.systers.conference.R;
-import com.systers.conference.api.DataDownloadManager;
-import com.systers.conference.callback.ObjectResponseCallback;
-import com.systers.conference.model.AttendeeId;
-import com.systers.conference.model.Question;
+import com.systers.conference.db.RealmDataRepository;
+import com.systers.conference.model.Attendee;
 import com.systers.conference.util.AccountUtils;
+import com.systers.conference.util.FirebaseAuthUtil;
+import com.systers.conference.util.FirebaseDatabaseUtil;
 import com.systers.conference.util.LogUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import io.realm.Realm;
 
 
 /**
  * A screen that allows user to verify details and register for the event.
  */
-public class RegisterActivity extends SingleInputFormActivity implements ObjectResponseCallback<AttendeeId> {
+public class RegisterActivity extends BaseActivity {
 
     private static final String LOG_TAG = LogUtils.makeLogTag(RegisterActivity.class);
-    List<Question> questions;
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
+    @BindView(R.id.register_first_name)
+    EditText mFirstName;
+    @BindView(R.id.register_last_name)
+    EditText mLastName;
+    @BindView(R.id.register_email)
+    EditText mEmail;
+    @BindView(R.id.register_company_name)
+    EditText mCompany;
+    @BindView(R.id.register_role)
+    EditText mRole;
+    @BindView(R.id.radio_attendeeType_group)
+    RadioGroup mRadioGroup;
+    @BindView(R.id.text_input_firstname)
+    TextInputLayout mTextFirstName;
+    @BindView(R.id.text_input_last_name)
+    TextInputLayout mTextLastName;
+    @BindView(R.id.text_input_email)
+    TextInputLayout mTextEmail;
+    private Attendee mAttendee;
+    private RealmDataRepository mRealmRepo = RealmDataRepository.getDefaultInstance();
+    private String mAttendeeType;
+    private ProgressDialog mProgressDialog;
+    private Realm realm;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
-        super.onCreate(savedInstanceState, persistentState);
-        if (AccountUtils.getRegisterVisited(this)) {
-            startActivity(new Intent(this, MainActivity.class));
-            ActivityCompat.finishAffinity(this);
-        }
+    @OnClick(R.id.register_button)
+    public void register() {
+        int radioButtonID = mRadioGroup.getCheckedRadioButtonId();
+        View radioButton = mRadioGroup.findViewById(radioButtonID);
+        int indexOfChild = mRadioGroup.indexOfChild(radioButton);
+        RadioButton r = (RadioButton) mRadioGroup.getChildAt(indexOfChild);
+        mAttendeeType = r.getText().toString();
+        checkForErrors();
     }
 
     @Override
-    protected List<Step> onCreateSteps() {
-        Intent intent = getIntent();
-        questions = new Gson().fromJson(intent.getStringExtra(getString(R.string.registration)), new TypeToken<List<Question>>() {
-        }.getType());
-        List<Step> steps = new ArrayList<>();
-        setInputGravity(Gravity.CENTER);
-        if (questions != null) {
-            for (Question question : questions) {
-                switch (question.getInputType()) {
-                    case 1:
-                        if (question.getFieldName().contains("email")) {
-                            steps.add(new TextStep.Builder(this, question.getFieldName())
-                                    .title(question.getDisplayName()).error(getString(R.string.error_invalid_email)).details(question.getDisplayName())
-                                    .inputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS)
-                                    .validator(new TextStep.Validator() {
-                                        @Override
-                                        public boolean validate(String input) {
-                                            return Patterns.EMAIL_ADDRESS.matcher(input).matches();
-                                        }
-                                    }).build());
-                        } else {
-                            steps.add(new TextStep.Builder(this, question.getFieldName())
-                                    .title(question.getDisplayName()).error("Error").details(question.getDisplayName()).inputType(InputType.TYPE_CLASS_TEXT).build());
-                        }
-                        break;
-                    case 17:
-                    case 16:
-                        //TODO: Replace this hardcoded options with real options.
-                        String[] options = {"Option1", "Option2", "Option3"};
-                        steps.add(new OptionStep.Builder(this, question.getFieldName()).title(question.getDisplayName()).error("Error")
-                                .details(question.getDisplayName()).options(options).build());
-                        break;
-                    case 3:
-                        steps.add(new CheckBoxStep.Builder(this, question.getFieldName()).
-                                title(question.getDisplayName())
-                                .error(getString(R.string.error))
-                                .details(question.getDisplayName())
-                                .text(getString(R.string.yes))
-                                .build());
-                        break;
-                    default:
-                        LogUtils.LOGE(LOG_TAG, "No data found");
-                        break;
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_registration);
+        ButterKnife.bind(this);
+        setSupportActionBar(mToolbar);
+        mProgressDialog = new ProgressDialog(this);
+        realm = Realm.getDefaultInstance();
+        mAttendee = mRealmRepo.getAttendeeFromRealm(firebaseUid);
+        mFirstName.setText(mAttendee.getFirstName());
+        mLastName.setText(mAttendee.getLastName());
+        mEmail.setText(mAttendee.getEmail());
+        mCompany.setText(mAttendee.getCompany());
+        mRole.setText(mAttendee.getTitle());
+        if (TextUtils.isEmpty(mEmail.getText().toString())) {
+            mEmail.setEnabled(true);
+        }
+    }
+
+    private void checkForErrors() {
+        mTextFirstName.setError(null);
+        mTextLastName.setError(null);
+        mTextEmail.setError(null);
+        mTextFirstName.setErrorEnabled(false);
+        mTextLastName.setErrorEnabled(false);
+        mTextEmail.setErrorEnabled(false);
+        boolean cancel = false;
+        View focusView = null;
+        if (TextUtils.isEmpty(mFirstName.getText().toString())) {
+            mTextFirstName.setErrorEnabled(true);
+            mTextFirstName.setError(getString(R.string.error_field_required));
+            focusView = mFirstName;
+            cancel = true;
+        } else if (TextUtils.isEmpty(mLastName.getText().toString())) {
+            mTextLastName.setErrorEnabled(true);
+            mTextLastName.setError(getString(R.string.error_field_required));
+            focusView = mLastName;
+            cancel = true;
+        } else if (TextUtils.isEmpty(mEmail.getText().toString())) {
+            mTextEmail.setErrorEnabled(true);
+            mTextEmail.setError(getString(R.string.error_field_required));
+            focusView = mEmail;
+            cancel = true;
+        }
+        if (cancel) {
+            focusView.requestFocus();
+        } else {
+            showProgressDialog();
+            updateEmailInFirebase();
+        }
+    }
+
+    private void updateEmailInFirebase() {
+        if (mEmail.isEnabled()) {
+            FirebaseAuthUtil.getFirebaseAuthInstance().getCurrentUser().updateEmail(mEmail.getText().toString()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        storeDataInRealm();
+                    } else {
+                        hideProgressDialog();
+                        LogUtils.LOGE(LOG_TAG, task.getException().getMessage());
+                        mTextEmail.setErrorEnabled(true);
+                        mTextEmail.setError("E-mail already exists. Please try another one");
+                        mEmail.requestFocus();
+                    }
+                }
+            });
+        } else {
+            storeDataInRealm();
+        }
+    }
+
+    private void storeDataInRealm() {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                mAttendee.setFirstName(mFirstName.getText().toString());
+                mAttendee.setLastName(mLastName.getText().toString());
+                mAttendee.setEmail(mEmail.getText().toString());
+                mAttendee.setAttendeeType(mAttendeeType);
+                if (!TextUtils.isEmpty(mCompany.getText().toString())) {
+                    mAttendee.setCompany(mCompany.getText().toString());
+                }
+                if (!TextUtils.isEmpty(mRole.getText().toString())) {
+                    mAttendee.setTitle(mRole.getText().toString());
                 }
             }
-        }
-        return steps;
+        });
+        saveAttendeeInFirebase();
     }
 
-    @Override
-    protected void onFormFinished(Bundle bundle) {
-        Map<String, String> responses = new HashMap<>();
-        for (Question question : questions) {
-            switch (question.getInputType()) {
-                case 1:
-                    responses.put(question.getFieldName(), TextStep.text(bundle, question.getFieldName()));
-                    break;
-                default:
-                    LogUtils.LOGE(LOG_TAG, "It is checkbox or radio");
-                    break;
+    private void saveAttendeeInFirebase() {
+        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        String attendeeJson = gson.toJson(realm.copyFromRealm(mAttendee));
+        DatabaseReference mFireBaseDatabaseRef = FirebaseDatabaseUtil.getDatabase().getReference().child("Users").child(firebaseUid);
+        Map<String, Object> jsonMap = gson.fromJson(attendeeJson, new TypeToken<HashMap<String, Object>>() {
+        }.getType());
+        mFireBaseDatabaseRef.setValue(jsonMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                hideProgressDialog();
+                if (task.isSuccessful()) {
+                    AccountUtils.setRegisterVisited(RegisterActivity.this);
+                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                    finish();
+                } else {
+                    LogUtils.LOGE(LOG_TAG, task.getException().getMessage());
+                }
             }
+        });
+    }
+
+    private void showProgressDialog() {
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage(getString(R.string.progressdialog_message));
+        mProgressDialog.show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_register, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_skip) {
+            AccountUtils.setRegisterVisited(this);
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return true;
         }
-        DataDownloadManager.getInstance().createAttendee(this, responses);
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void hideProgressDialog() {
+        mProgressDialog.dismiss();
     }
 
     @Override
-    public void OnSuccess(AttendeeId response) {
-        AccountUtils.setRegisterVisited(this);
-        Toast.makeText(this, getString(R.string.registration_successfull), Toast.LENGTH_SHORT).show();
-        startActivity(new Intent(this, MainActivity.class));
-        ActivityCompat.finishAffinity(this);
-    }
-
-    @Override
-    public void OnFailure(Throwable error) {
-        Toast.makeText(this, getString(R.string.registration_unsuccessful), Toast.LENGTH_LONG).show();
-        ActivityCompat.finishAffinity(this);
-        startActivity(getIntent());
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close();
     }
 }
 

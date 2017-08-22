@@ -7,48 +7,22 @@
     android:fadeScrollbars="true"
     android:scrollbars="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.systers.conference.profile.EditProfileActivity"
-    tools:showIn="@layout/activity_edit_profile">
+    tools:context=".register.RegisterActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clipToPadding="false"
         android:orientation="vertical"
-        android:padding="@dimen/activity_vertical_margin">
-
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal">
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/avatar"
-                android:layout_width="@dimen/avatar_size"
-                android:layout_height="@dimen/avatar_size"
-                android:layout_marginBottom="@dimen/activity_vertical_margin"
-                android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                android:layout_marginRight="@dimen/activity_horizontal_margin" />
-
-            <com.getbase.floatingactionbutton.FloatingActionButton
-                android:id="@+id/edit_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                app:fab_colorNormal="@color/colorAccent"
-                app:fab_colorPressed="@android:color/white"
-                app:fab_size="mini" />
-
-        </FrameLayout>
+        android:padding="@dimen/activity_horizontal_margin">
 
         <android.support.design.widget.TextInputLayout
             android:id="@+id/text_input_firstname"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/list_item_padding">
+            android:layout_height="wrap_content">
 
             <EditText
-                android:id="@+id/edit_first_name"
+                android:id="@+id/register_first_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_first_name"
@@ -64,7 +38,7 @@
             android:layout_marginTop="@dimen/list_item_padding">
 
             <EditText
-                android:id="@+id/edit_last_name"
+                android:id="@+id/register_last_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_last_name"
@@ -75,12 +49,13 @@
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
+            android:id="@+id/text_input_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/list_item_padding">
 
             <EditText
-                android:id="@+id/edit_email"
+                android:id="@+id/register_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:enabled="false"
@@ -96,7 +71,7 @@
             android:layout_marginTop="@dimen/list_item_padding">
 
             <EditText
-                android:id="@+id/edit_company_name"
+                android:id="@+id/register_company_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_company_name"
@@ -110,7 +85,7 @@
             android:layout_marginTop="@dimen/list_item_padding">
 
             <EditText
-                android:id="@+id/edit_role"
+                android:id="@+id/register_role"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_role"
@@ -119,41 +94,52 @@
 
         </android.support.design.widget.TextInputLayout>
 
-        <Button
-            android:id="@+id/facebook_button"
+        <TextView
+            style="@style/InputLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/button_margin_top"
-            android:clickable="true"
-            android:drawablePadding="@dimen/drawable_padding"
-            android:elevation="@dimen/button_elevation"
-            android:ellipsize="end"
-            android:foreground="?attr/selectableItemBackgroundBorderless"
-            android:maxLines="1"
-            android:paddingEnd="@dimen/activity_horizontal_margin"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingStart="@dimen/activity_horizontal_margin"
-            tools:targetApi="lollipop"
-            tools:text="connect with facebook" />
+            android:layout_marginTop="@dimen/list_item_padding"
+            android:text="@string/prompt_attendee_type" />
+
+        <RadioGroup
+            android:id="@+id/radio_attendeeType_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/radio_attendee"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/attendee" />
+
+            <RadioButton
+                android:id="@+id/radio_student"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/student" />
+
+            <RadioButton
+                android:id="@+id/radio_volunteer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/volunteer" />
+        </RadioGroup>
 
         <Button
-            android:id="@+id/google_button"
+            android:id="@+id/register_button"
+            style="?android:textAppearanceSmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/button_margin_top"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:background="@color/colorPrimaryDark"
             android:clickable="true"
-            android:drawablePadding="@dimen/drawable_padding"
             android:elevation="@dimen/button_elevation"
-            android:ellipsize="end"
             android:foreground="?attr/selectableItemBackgroundBorderless"
-            android:maxLines="1"
-            android:paddingEnd="@dimen/activity_horizontal_margin"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingStart="@dimen/activity_horizontal_margin"
-            tools:targetApi="lollipop"
-            tools:text="connect with google" />
+            android:text="@string/action_register"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            tools:targetApi="lollipop" />
     </LinearLayout>
-
 </android.support.v4.widget.NestedScrollView>

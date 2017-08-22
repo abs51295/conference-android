@@ -170,16 +170,6 @@ public class AccountUtils {
         return preferences.contains(PREFIX_PREF_REGISTER);
     }
 
-    public static void setLoginVisited(final Context context){
-        SharedPreferences preferences = getSharedPreferences(context);
-        preferences.edit().putBoolean(PREFIX_PREF_LOGIN, true).apply();
-    }
-
-    public static boolean getLoginVisited(final Context context){
-        SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_LOGIN);
-    }
-
     public static void setRegistrationPreference(final Context context, String value) {
         SharedPreferences preferences = getSharedPreferences(context);
         preferences.edit().putString(PREFIX_PREF_PRE_REG, value).apply();

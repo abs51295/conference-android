@@ -11,4 +11,5 @@
     <color name="buttonShadow">#64BEBEBE</color>
     <color name="twitter_color">#FF5BAAF4</color>
     <color name="bgGoogleButton">#ffffff</color>
+    <color name="material_black_54">#8a000000</color>
 </resources>

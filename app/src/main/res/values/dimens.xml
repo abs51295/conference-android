@@ -32,4 +32,6 @@
     <dimen name="button_inset_top">0dp</dimen>
     <dimen name="auth_method_button_drawablePadding">12dp</dimen>
     <dimen name="auth_method_button_margin">4dp</dimen>
+    <dimen name="input_label_vertical_spacing">8dp</dimen>
+    <dimen name="input_label_horizontal_spacing">4dp</dimen>
 </resources>

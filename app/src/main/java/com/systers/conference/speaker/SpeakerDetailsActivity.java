@@ -22,7 +22,6 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.systers.conference.R;
 import com.systers.conference.model.Speaker;
-import com.systers.conference.util.APIUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -66,9 +65,8 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
     }
 
     private void setUpViews() {
-        String imageUrl = "https://www.eiseverywhere.com/image.php?acc=" + APIUtils.ACCOUNT_ID + "&id=" + speaker.getImageId();
         Picasso.with(this)
-                .load(Uri.parse(imageUrl))
+                .load(Uri.parse(speaker.getAvatarUrl()))
                 .error(R.drawable.male_icon_9_glasses)
                 .into(image, new Callback() {
                     @Override
@@ -81,9 +79,9 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
                         progressBar.setVisibility(View.GONE);
                     }
                 });
-        title.setText(speaker.getFirstName() + " " + speaker.getLastName());
-        designation.setText(speaker.getTitle() + ", " + speaker.getCompany());
-        description.setText(speaker.getBio());
+        title.setText(speaker.getName());
+        designation.setText(speaker.getRole() + ", " + speaker.getCompany());
+        description.setText(speaker.getDescription());
     }
 
     @Override
@@ -91,9 +89,9 @@ public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarL
         int maxScroll = appBarLayout.getTotalScrollRange();
         float percentage = (float) Math.abs(verticalOffset) / (float) maxScroll;
         if (percentage == 1f && isHideToolbarView) {
-            if (TextUtils.isEmpty(speaker.getTitle()) && TextUtils.isEmpty(speaker.getCompany())) {
+            if (TextUtils.isEmpty(speaker.getRole()) && TextUtils.isEmpty(speaker.getCompany())) {
                 header.setVisibility(View.GONE);
-                collapsingToolbarLayout.setTitle(speaker.getFirstName() + " " + speaker.getLastName());
+                collapsingToolbarLayout.setTitle(speaker.getName());
                 isHideToolbarView = !isHideToolbarView;
             } else {
                 header.setVisibility(View.VISIBLE);

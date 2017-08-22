@@ -100,4 +100,10 @@
         <item name="android:background">@drawable/idp_button_background_google</item>
         <item name="android:textColor">#757575</item>
     </style>
+
+    <style name="InputLabel" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:paddingBottom">@dimen/input_label_vertical_spacing</item>
+        <item name="android:paddingLeft">@dimen/input_label_horizontal_spacing</item>
+        <item name="android:paddingRight">@dimen/input_label_horizontal_spacing</item>
+    </style>
 </resources>

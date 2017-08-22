@@ -8,7 +8,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.content.res.AppCompatResources;
 import android.text.TextUtils;
@@ -27,9 +26,21 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.TwitterAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.systers.conference.MainActivity;
 import com.systers.conference.R;
-import com.systers.conference.register.PreRegistrationActivity;
+import com.systers.conference.db.RealmDataRepository;
+import com.systers.conference.model.Attendee;
+import com.systers.conference.register.RegisterActivity;
 import com.systers.conference.util.AccountUtils;
+import com.systers.conference.util.FirebaseAuthUtil;
+import com.systers.conference.util.FirebaseDatabaseUtil;
 import com.systers.conference.util.LogUtils;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
@@ -48,7 +59,7 @@ import retrofit2.Response;
 
 
 /**
- * A login screen that offers login via Google and Facebook.
+ * A login screen that offers login via Google and Twitter.
  */
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
@@ -64,6 +75,9 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private FirebaseAuth mFirebaseAuth;
     private ProgressDialog mProgressDialog;
     private TwitterAuthClient mTwitterAuthClient;
+    private RealmDataRepository mRealmRepo = RealmDataRepository.getDefaultInstance();
+    private DatabaseReference mFireBaseDatabaseRef = FirebaseDatabaseUtil.getDatabase().getReference().child("Users");
+    private Attendee mAttendee = new Attendee();
 
     @OnClick(R.id.google_button)
     public void googleSignIn() {
@@ -91,15 +105,11 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mFirebaseAuth = FirebaseAuth.getInstance();
-        mTwitterAuthClient = new TwitterAuthClient();
-        if (mFirebaseAuth.getCurrentUser() != null) {
-            startActivity(new Intent(this, PreRegistrationActivity.class));
-            ActivityCompat.finishAffinity(this);
-        }
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
         setDrawables();
+        mFirebaseAuth = FirebaseAuthUtil.getFirebaseAuthInstance();
+        mTwitterAuthClient = new TwitterAuthClient();
         mProgressDialog = new ProgressDialog(this);
         GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).
                 requestIdToken(getString(R.string.default_web_client_id)).
@@ -116,9 +126,28 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     }
 
     private void startRegisterActivity() {
-        AccountUtils.setLoginVisited(this);
-        startActivity(new Intent(this, PreRegistrationActivity.class));
-        ActivityCompat.finishAffinity(this);
+        mFireBaseDatabaseRef.child(mFirebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    mRealmRepo.saveAttendeeInRealmSync(dataSnapshot.getKey(), getAttendeeFromDataSnapshot(dataSnapshot), true, mFirebaseAuth.getCurrentUser().getProviders().get(0));
+                    hideProgressDialog();
+                    AccountUtils.setRegisterVisited(LoginActivity.this);
+                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                } else {
+                    mRealmRepo.saveAttendeeInRealmSync(mFirebaseAuth.getCurrentUser().getUid(), mAttendee, false, mFirebaseAuth.getCurrentUser().getProviders().get(0));
+                    hideProgressDialog();
+                    startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+                }
+                finish();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                hideProgressDialog();
+                LogUtils.LOGE(LOG_TAG, databaseError.getMessage());
+            }
+        });
     }
 
     private void handleGoogleSignInResult(GoogleSignInResult result) {
@@ -126,18 +155,22 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             showProgressDialog();
             GoogleSignInAccount account = result.getSignInAccount();
             if (account.getGivenName() != null) {
+                mAttendee.setFirstName(account.getGivenName());
                 AccountUtils.setFirstName(getApplicationContext(), account.getGivenName());
             }
             if (account.getFamilyName() != null) {
+                mAttendee.setLastName(account.getFamilyName());
                 AccountUtils.setLastName(getApplicationContext(), account.getFamilyName());
             }
             if (account.getEmail() != null) {
+                mAttendee.setEmail(account.getEmail());
                 AccountUtils.setEmail(getApplicationContext(), account.getEmail());
             }
             if (account.getId() != null) {
                 AccountUtils.setActiveGoogleAccount(getApplicationContext(), account.getId());
             }
             if (account.getPhotoUrl() != null) {
+                mAttendee.setAvatarUrl(account.getPhotoUrl().toString());
                 AccountUtils.setProfilePictureUrl(getApplicationContext(), account.getPhotoUrl().toString());
             }
             firebaseAuthWithGoogle(account);
@@ -152,12 +185,12 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        hideProgressDialog();
                         if (task.isSuccessful()) {
                             startRegisterActivity();
                         } else {
                             Snackbar.make(mRootView, getString(R.string.registration_unsuccessful), Snackbar.LENGTH_LONG).show();
-                            LogUtils.LOGE(LOG_TAG, task.toString());
+                            hideProgressDialog();
+                            LogUtils.LOGE(LOG_TAG, task.getException().getMessage());
                         }
                     }
                 });
@@ -173,13 +206,17 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 if (response.isSuccessful()) {
                     User user = response.body();
                     if (!TextUtils.isEmpty(user.email)) {
+                        mAttendee.setEmail(user.email);
                         AccountUtils.setEmail(LoginActivity.this, user.email);
                     }
                     if (!user.defaultProfileImage) {
+                        mAttendee.setAvatarUrl(user.profileImageUrlHttps);
                         AccountUtils.setProfilePictureUrl(LoginActivity.this, user.profileImageUrlHttps);
                     }
                     String[] name = user.name.split("\\s+");
                     try {
+                        mAttendee.setFirstName(name[0]);
+                        mAttendee.setLastName(name[1]);
                         AccountUtils.setFirstName(LoginActivity.this, name[0]);
                         AccountUtils.setLastName(LoginActivity.this, name[1]);
                     } catch (ArrayIndexOutOfBoundsException e) {
@@ -209,12 +246,12 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        hideProgressDialog();
                         if (task.isSuccessful()) {
                             startRegisterActivity();
                         } else {
                             Snackbar.make(mRootView, getString(R.string.registration_unsuccessful), Snackbar.LENGTH_LONG).show();
-                            LogUtils.LOGE(LOG_TAG, task.toString());
+                            hideProgressDialog();
+                            LogUtils.LOGE(LOG_TAG, task.getException().getMessage());
                         }
                     }
                 });
@@ -236,6 +273,13 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
     private void hideProgressDialog() {
         mProgressDialog.dismiss();
+    }
+
+    private Attendee getAttendeeFromDataSnapshot(DataSnapshot dataSnapshot) {
+        Gson gson = new GsonBuilder().create();
+        String attendeeJson = gson.toJson(dataSnapshot.getValue());
+        return gson.fromJson(attendeeJson, new TypeToken<Attendee>() {
+        }.getType());
     }
 
     @Override

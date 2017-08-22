@@ -1,6 +1,9 @@
 package com.systers.conference.db;
 
 
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.TwitterAuthProvider;
+import com.systers.conference.model.Attendee;
 import com.systers.conference.model.Event;
 import com.systers.conference.model.Session;
 import com.systers.conference.model.Speaker;
@@ -314,5 +317,31 @@ public class RealmDataRepository {
 
     public RealmResults<Event> getEvent() {
         return mRealm.where(Event.class).findAllAsync();
+    }
+
+    public void saveAttendeeInRealmSync(final String attendeeId, final Attendee attendee, final boolean isRegistered, final String providerId) {
+        mRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm bgRealm) {
+                switch (providerId) {
+                    case GoogleAuthProvider.PROVIDER_ID:
+                        attendee.setGoogleLoggedIn(true);
+                        break;
+                    case TwitterAuthProvider.PROVIDER_ID:
+                        attendee.setTwitterLoggedIn(true);
+                        break;
+                    default:
+                        LogUtils.LOGE(LOG_TAG, "Provider not found");
+                        break;
+                }
+                attendee.setUid(attendeeId);
+                attendee.setRegistered(isRegistered);
+                bgRealm.insertOrUpdate(attendee);
+            }
+        });
+    }
+
+    public Attendee getAttendeeFromRealm(final String attendeeId) {
+        return mRealm.where(Attendee.class).equalTo("uid", attendeeId).findFirst();
     }
 }

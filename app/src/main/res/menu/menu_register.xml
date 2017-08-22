@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".register.RegisterActivity">
+    <item
+        android:id="@+id/action_skip"
+        android:orderInCategory="1"
+        android:title="@string/skip_registration"
+        app:showAsAction="never" />
+</menu>

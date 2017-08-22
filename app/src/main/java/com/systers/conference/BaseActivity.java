@@ -4,11 +4,11 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -17,6 +17,8 @@ import com.systers.conference.model.Event;
 import com.systers.conference.model.Session;
 import com.systers.conference.model.Speaker;
 import com.systers.conference.model.Track;
+import com.systers.conference.util.FirebaseAuthUtil;
+import com.systers.conference.util.FirebaseDatabaseUtil;
 import com.systers.conference.util.LogUtils;
 
 /**
@@ -25,6 +27,7 @@ import com.systers.conference.util.LogUtils;
  */
 public abstract class BaseActivity extends AppCompatActivity {
     private static final String LOG_TAG = LogUtils.makeLogTag(BaseActivity.class);
+    protected String firebaseUid;
     private DatabaseReference mFireBaseDatabaseRef;
     private ChildEventListener mSessionChildListener;
     private ChildEventListener mSpeakerChildListener;
@@ -36,7 +39,11 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mFireBaseDatabaseRef = FirebaseDatabase.getInstance().getReference();
+        mFireBaseDatabaseRef = FirebaseDatabaseUtil.getDatabase().getReference();
+        FirebaseUser currentUser = FirebaseAuthUtil.getFirebaseAuthInstance().getCurrentUser();
+        if (currentUser != null) {
+            firebaseUid = currentUser.getUid();
+        }
     }
 
     @Override
