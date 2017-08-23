@@ -18,14 +18,18 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+import com.systers.conference.db.RealmDataRepository;
+import com.systers.conference.model.Attendee;
 import com.systers.conference.profile.ProfileFragment;
 import com.systers.conference.schedule.ScheduleFragment;
 import com.systers.conference.util.LogUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends BaseActivity {
 
@@ -39,7 +43,7 @@ public class MainActivity extends BaseActivity {
     NavigationView mNavigationView;
     @BindView(R.id.app_bar)
     AppBarLayout mAppBar;
-    private ImageView mProfileImage;
+    private CircleImageView mProfileImage;
     private int mPendingMenuSection = -1;
     private final NavigationView.OnNavigationItemSelectedListener navigationItemSelectedListener = new NavigationView.OnNavigationItemSelectedListener() {
         @Override
@@ -52,6 +56,7 @@ public class MainActivity extends BaseActivity {
     private int mCurrentMenuSection = -1;
     private Section mCurrentSection;
     private ActionBarDrawerToggle mDrawerToogle;
+    private RealmDataRepository mRealmRepo = RealmDataRepository.getDefaultInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +64,9 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         View headerView = mNavigationView.getHeaderView(0);
-        mProfileImage = (ImageView) headerView.findViewById(R.id.imageView);
+        mProfileImage = (CircleImageView) headerView.findViewById(R.id.nav_avatar_view);
+        TextView name = (TextView) headerView.findViewById(R.id.nav_name_text);
+        TextView email = (TextView) headerView.findViewById(R.id.nav_email_text);
         setSupportActionBar(mToolbar);
         mDrawerToogle = new ActionBarDrawerToggle(
                 this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
@@ -101,11 +108,23 @@ public class MainActivity extends BaseActivity {
         mDrawerToogle.syncState();
         if (savedInstanceState == null) {
             if (getIntent().getBooleanExtra(getString(R.string.edit_profile), false)) {
-                selectNavigationItem(R.id.imageView);
+                selectNavigationItem(R.id.nav_avatar_view);
             } else {
-                selectNavigationItem(R.id.nav_camera);
+                selectNavigationItem(R.id.nav_schedule);
             }
         }
+        Attendee mAttendee = mRealmRepo.getAttendeeFromRealmSync(firebaseUid);
+        if (mAttendee.getAvatarUrl() != null) {
+            Picasso.with(this)
+                    .load(mAttendee.getAvatarUrl())
+                    .resize(128, 128)
+                    .centerCrop()
+                    .error(R.drawable.male_icon_9_glasses)
+                    .placeholder(R.drawable.male_icon_9_glasses)
+                    .into(mProfileImage);
+        }
+        name.setText(mAttendee.getFirstName() + " " + mAttendee.getLastName());
+        email.setText(mAttendee.getEmail());
     }
 
     @Override
@@ -141,7 +160,7 @@ public class MainActivity extends BaseActivity {
         LogUtils.LOGE(LOG_TAG, "savedInstance");
         mCurrentMenuSection = savedInstanceState.getInt(STATE_CURRENT_SECTION);
         LogUtils.LOGE(LOG_TAG, mCurrentMenuSection + " ");
-        if (mCurrentMenuSection != R.id.imageView) {
+        if (mCurrentMenuSection != R.id.nav_avatar_view) {
             LogUtils.LOGE(LOG_TAG, "true");
             mNavigationView.getMenu().findItem(mCurrentMenuSection).setChecked(true);
         } else {
@@ -161,15 +180,15 @@ public class MainActivity extends BaseActivity {
         if (mCurrentMenuSection != itemId) {
             mCurrentMenuSection = itemId;
             switch (itemId) {
-                case R.id.nav_camera:
+                case R.id.nav_schedule:
                     mNavigationView.getMenu().findItem(itemId).setChecked(true);
                     updateUI(Section.SCHEDULE);
                     break;
-                case R.id.nav_gallery:
+                case R.id.nav_myschedule:
                     mNavigationView.getMenu().findItem(itemId).setChecked(true);
                     updateUI(Section.MYSCHEDULE);
                     break;
-                case R.id.imageView:
+                case R.id.nav_avatar_view:
                     updateUI(Section.PROFILE);
                     break;
             }
@@ -178,13 +197,13 @@ public class MainActivity extends BaseActivity {
 
     private void mapIdToSection(int itemId) {
         switch (itemId) {
-            case R.id.nav_camera:
+            case R.id.nav_schedule:
                 mCurrentSection = Section.SCHEDULE;
                 break;
-            case R.id.nav_gallery:
+            case R.id.nav_myschedule:
                 mCurrentSection = Section.MYSCHEDULE;
                 break;
-            case R.id.imageView:
+            case R.id.nav_avatar_view:
                 mCurrentSection = Section.PROFILE;
                 break;
         }
