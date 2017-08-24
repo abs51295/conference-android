@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.systers.conference.R;
 import com.systers.conference.event.EventDetailActivity;
 import com.systers.conference.model.Session;
+import com.systers.conference.util.AccountUtils;
 import com.systers.conference.util.DateTimeUtil;
 
 import butterknife.BindView;
@@ -21,7 +22,6 @@ import butterknife.ButterKnife;
 
 public class DayWiseScheduleViewHolder extends ViewHolder {
 
-    public static final String SESSION_ID = "mSession-id";
     @BindView(R.id.schedule_list_item)
     RelativeLayout listItem;
     @BindView(R.id.title)
@@ -60,7 +60,7 @@ public class DayWiseScheduleViewHolder extends ViewHolder {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, EventDetailActivity.class);
-                intent.putExtra(SESSION_ID, mSession.getId());
+                AccountUtils.setCurrentSession(mContext, mSession.getId());
                 mContext.startActivity(intent);
             }
         });

@@ -107,6 +107,7 @@
     <string name="edit_profile" translatable="false">edit_profile</string>
     <string name="registration" translatable="false">form_data</string>
     <string name="speaker_data" translatable="false">speaker_data</string>
+    <string name="session_id" translatable="false">session_id</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
