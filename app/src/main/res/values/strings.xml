@@ -118,4 +118,5 @@
     <!--Strings related to auth-->
     <string name="sign_in_with_google">Sign in with Google</string>
     <string name="sign_in_with_twitter">Sign in with Twitter</string>
+    <string name="title_map_fragment">Maps</string>
 </resources>
