@@ -1,6 +1,8 @@
 package com.systers.conference.db;
 
 
+import android.support.annotation.VisibleForTesting;
+
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.TwitterAuthProvider;
 import com.systers.conference.model.Attendee;
@@ -120,12 +122,22 @@ public class RealmDataRepository {
         return mRealm.where(Session.class).equalTo("sessiondate", sessionDate).findAllSortedAsync("starttime");
     }
 
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    public RealmResults<Session> getSessionsByDaySync(final String sessionDate) {
+        return mRealm.where(Session.class).equalTo("sessiondate", sessionDate).findAllSorted("starttime");
+    }
+
     public Session getSessionById(final String sessionId) {
         return mRealm.where(Session.class).equalTo("id", sessionId).findFirst();
     }
 
     public RealmResults<Session> getBookmarkedSessions(final String sessionDate) {
         return mRealm.where(Session.class).equalTo("sessiondate", sessionDate).equalTo("isBookmarked", true).findAllSortedAsync("starttime");
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    public RealmResults<Session> getBookmarkedSessionsSync(final String sessionDate) {
+        return mRealm.where(Session.class).equalTo("sessiondate", sessionDate).equalTo("isBookmarked", true).findAllSorted("starttime");
     }
 
     public void setBookmark(final String sessionId, final boolean bookmark) {

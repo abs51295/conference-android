@@ -85,6 +85,7 @@
     <string name="add_to_bookmarks">Add to Bookmarks</string>
     <string name="remove_from_bookmarks">Remove from Bookmarks</string>
     <string name="skip_registration">Skip Registration</string>
+    <string name="discard_changes">Are you sure you want to discard your changes?</string>
 
     <!-- Strings related to saving image in gallery -->
     <string name="image_title">Conference</string>

@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -122,6 +123,11 @@ public class RegisterActivity extends BaseActivity {
             mTextEmail.setError(getString(R.string.error_field_required));
             focusView = mEmail;
             cancel = true;
+        } else if (!isEmailValid(mEmail.getText().toString())) {
+            mTextEmail.setErrorEnabled(true);
+            mTextEmail.setError(getString(R.string.error_invalid_email));
+            focusView = mEmail;
+            cancel = true;
         }
         if (cancel) {
             focusView.requestFocus();
@@ -129,6 +135,10 @@ public class RegisterActivity extends BaseActivity {
             showProgressDialog();
             updateEmailInFirebase();
         }
+    }
+
+    private boolean isEmailValid(String email) {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
     private void updateEmailInFirebase() {

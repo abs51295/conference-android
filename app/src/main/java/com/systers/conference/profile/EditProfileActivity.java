@@ -94,7 +94,7 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
     EditText mLastName;
     @BindView(R.id.edit_email)
     EditText mEmail;
-    @BindView(R.id.attendeeType)
+    @BindView(R.id.edit_attendee_type)
     EditText mAttendeeType;
     @BindView(R.id.edit_company_name)
     EditText mCompanyName;
@@ -521,7 +521,7 @@ public class EditProfileActivity extends AppCompatActivity implements GoogleApiC
             if (dataChanged) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setCancelable(false);
-                builder.setMessage("Are you sure you want to discard your changes?");
+                builder.setMessage(getString(R.string.discard_changes));
                 builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

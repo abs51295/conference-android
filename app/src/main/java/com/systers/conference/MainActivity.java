@@ -22,8 +22,8 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 import com.systers.conference.db.RealmDataRepository;
-import com.systers.conference.model.Attendee;
 import com.systers.conference.maps.MapFragment;
+import com.systers.conference.model.Attendee;
 import com.systers.conference.profile.ProfileFragment;
 import com.systers.conference.schedule.ScheduleFragment;
 import com.systers.conference.util.LogUtils;
@@ -192,7 +192,7 @@ public class MainActivity extends BaseActivity {
                 case R.id.nav_avatar_view:
                     updateUI(Section.PROFILE);
                     break;
-                case R.id.nav_slideshow:
+                case R.id.nav_maps:
                     mNavigationView.getMenu().findItem(itemId).setChecked(true);
                     updateUI(Section.MAP);
                     break;
@@ -211,7 +211,7 @@ public class MainActivity extends BaseActivity {
             case R.id.nav_avatar_view:
                 mCurrentSection = Section.PROFILE;
                 break;
-            case R.id.nav_slideshow:
+            case R.id.nav_maps:
                 mCurrentSection = Section.MAP;
                 break;
         }

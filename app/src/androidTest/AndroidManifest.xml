@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?><!-- Required for UI automator to work for SDK versions less than 18 --><!-- https://github.com/googlesamples/android-testing-templates/blob/master/AndroidTestingBlueprint/app/src/androidTest/AndroidManifest.xml -->
+<manifest xmlns:tools="http://schemas.android.com/tools"
+    package="com.systers.conference">
+
+    <uses-sdk tools:overrideLibrary="android.support.test.uiautomator.v18" />
+</manifest>
