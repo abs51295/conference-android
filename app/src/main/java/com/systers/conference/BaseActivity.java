@@ -1,5 +1,6 @@
 package com.systers.conference;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +20,8 @@ import com.systers.conference.model.Speaker;
 import com.systers.conference.model.Track;
 import com.systers.conference.util.LogUtils;
 
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
+
 /**
  * Extend this activity to provide real-time updation of Realm DB.
  * Provides an app-wide mechanism to sync Firebase and Realm.
@@ -37,6 +40,11 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mFireBaseDatabaseRef = FirebaseDatabase.getInstance().getReference();
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
     @Override

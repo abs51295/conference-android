@@ -1,7 +1,8 @@
 package com.systers.conference.schedule;
 
+import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.systers.conference.R;
+import com.systers.conference.widgets.FontTabLayout;
 import com.systers.conference.db.RealmDataRepository;
 import com.systers.conference.model.Event;
 import com.systers.conference.util.DateTimeUtil;
@@ -28,7 +30,7 @@ import io.realm.RealmResults;
 public class ScheduleFragment extends Fragment {
 
     @BindView(R.id.day_tabs)
-    TabLayout mTabLayout;
+    FontTabLayout mTabLayout;
     @BindView(R.id.schedule_view_pager)
     ViewPager mViewPager;
     private Unbinder mUnbinder;

@@ -46,7 +46,7 @@ public class AccountUtils {
         return preferences.contains(PREFIX_PREF_GOOGLE_ID) ? preferences.getString(PREFIX_PREF_GOOGLE_ID, null) : "";
     }
 
-    public static void setActiveGoggleAccount(final Context context, final String accountId) {
+    public static void setActiveGoogleAccount(final Context context, final String accountId) {
         LOGE(LOG_TAG, "Set active google account id to: " + accountId);
         SharedPreferences preferences = getSharedPreferences(context);
         preferences.edit().putString(PREFIX_PREF_GOOGLE_ID, accountId).apply();
@@ -169,7 +169,7 @@ public class AccountUtils {
 
     public static boolean getRegisterVisited(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_REGISTER);
+        return preferences.contains(PREFIX_PREF_REGISTER) && preferences.getBoolean(PREFIX_PREF_REGISTER, false);
     }
 
     public static void setLoginVisited(final Context context) {
@@ -179,7 +179,7 @@ public class AccountUtils {
 
     public static boolean getLoginVisited(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
-        return preferences.contains(PREFIX_PREF_LOGIN);
+        return preferences.contains(PREFIX_PREF_LOGIN) && preferences.getBoolean(PREFIX_PREF_LOGIN, false);
     }
 
     public static void setRegistrationPreference(final Context context, String value) {
@@ -187,6 +187,7 @@ public class AccountUtils {
         preferences.edit().putString(PREFIX_PREF_PRE_REG, value).apply();
     }
 
+    @Nullable
     public static String getRegistrationPreference(final Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
         return preferences.contains(PREFIX_PREF_PRE_REG) ? preferences.getString(PREFIX_PREF_PRE_REG, null) : null;

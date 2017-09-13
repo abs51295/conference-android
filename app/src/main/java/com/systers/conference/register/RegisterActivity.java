@@ -1,5 +1,6 @@
 package com.systers.conference.register;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -31,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
+
 
 /**
  * A screen that allows user to verify details and register for the event.
@@ -47,6 +50,11 @@ public class RegisterActivity extends SingleInputFormActivity implements ObjectR
             startActivity(new Intent(this, MainActivity.class));
             ActivityCompat.finishAffinity(this);
         }
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
     @Override

@@ -69,13 +69,14 @@
 
                 <TextView
                     android:id="@+id/speakers_details_title"
+                    fontPath="fonts/calibri-bold.ttf"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="@dimen/speaker_details_margin"
                     android:layout_marginStart="@dimen/speaker_details_margin"
                     android:textColor="@android:color/black"
                     android:textSize="@dimen/text_size_header"
-                    android:textStyle="bold" />
+                    tools:ignore="MissingPrefix" />
 
                 <TextView
                     android:id="@+id/speakers_details_designation"

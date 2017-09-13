@@ -1,51 +1,51 @@
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/login_coordinator_layout"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center_horizontal"
-    tools:context="com.systers.conference.login.LoginActivity">
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <ImageView
+        android:id="@+id/logo"
+        style="@style/AuthMethodPicker.Logo"
+        app:layout_constraintBottom_toTopOf="@+id/container"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/anita_borg_logo"
+        tools:ignore="ContentDescription" />
 
     <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:id="@+id/container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.9">
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="@dimen/activity_vertical_margin">
+            android:id="@+id/btn_holder"
+            style="@style/AuthMethodPicker.ButtonHolder">
 
-            <ImageView
-                android:layout_width="@dimen/logo_size"
-                android:layout_height="@dimen/logo_size"
-                android:layout_gravity="center_horizontal"
-                android:contentDescription="@string/anita_borg"
-                android:scaleType="fitXY"
-                android:src="@drawable/anita_borg_logo" />
+            <Button
+                android:id="@+id/google_button"
+                style="@style/AuthUI.Button.AccountChooser.GoogleButton"
+                android:text="@string/sign_in_with_google"
+                tools:ignore="UnusedIds" />
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:contentDescription="@string/ghc"
-                android:src="@drawable/ghc" />
-
-            <com.google.android.gms.common.SignInButton
-                android:id="@+id/google_sign_in_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal" />
-
-
-            <com.facebook.login.widget.LoginButton
-                android:id="@+id/fb_login_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="@dimen/fb_button_margin"
-                android:layout_marginTop="@dimen/fb_button_margin" />
+            <Button
+                android:id="@+id/twitter_button"
+                style="@style/AuthUI.Button.AccountChooser.TwitterButton"
+                android:text="@string/sign_in_with_twitter"
+                tools:ignore="UnusedIds" />
 
         </LinearLayout>
+
     </ScrollView>
-</android.support.design.widget.CoordinatorLayout>
+
+</android.support.constraint.ConstraintLayout>

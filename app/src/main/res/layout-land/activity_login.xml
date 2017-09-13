@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <ImageView
+        android:id="@+id/logo"
+        style="@style/AuthMethodPicker.Logo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/container"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/anita_borg_logo"
+        tools:ignore="ContentDescription" />
+
+    <ScrollView
+        android:id="@+id/container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.9"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:id="@+id/btn_holder"
+            style="@style/AuthMethodPicker.ButtonHolder">
+
+            <Button
+                android:id="@+id/google_button"
+                style="@style/AuthUI.Button.AccountChooser.GoogleButton"
+                android:text="@string/sign_in_with_google"
+                tools:ignore="UnusedIds" />
+
+            <Button
+                android:id="@+id/twitter_button"
+                style="@style/AuthUI.Button.AccountChooser.TwitterButton"
+                android:text="@string/sign_in_with_twitter"
+                tools:ignore="UnusedIds" />
+        </LinearLayout>
+
+    </ScrollView>
+
+</android.support.constraint.ConstraintLayout>

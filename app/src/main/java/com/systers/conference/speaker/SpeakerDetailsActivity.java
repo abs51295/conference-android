@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
@@ -18,6 +17,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import com.systers.conference.BaseActivity;
 import com.systers.conference.R;
 import com.systers.conference.db.RealmDataRepository;
 import com.systers.conference.model.Speaker;
@@ -28,7 +28,7 @@ import io.realm.ObjectChangeSet;
 import io.realm.RealmModel;
 import io.realm.RealmObjectChangeListener;
 
-public class SpeakerDetailsActivity extends AppCompatActivity implements AppBarLayout.OnOffsetChangedListener {
+public class SpeakerDetailsActivity extends BaseActivity implements AppBarLayout.OnOffsetChangedListener {
 
     @BindView(R.id.toolbar_speaker_details)
     Toolbar toolbar;
